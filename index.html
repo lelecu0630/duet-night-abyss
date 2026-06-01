@@ -105,6 +105,12 @@
         border-radius: 4px;
       }
       .filter-count { font-size: 11px; color: #7c7c8a; padding-bottom: 6px; white-space: nowrap; }
+      .wedge-filter-bar select:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        border-color: #8257e5;
+        border-style: dashed;
+      }
       .filter-count span { color: #8257e5; font-weight: bold; }
 
       /* 쐐기 매트릭스 */
@@ -130,9 +136,12 @@
       .wedge-slot.core-slot .slot-label   { color: #f39c12; }
       .wedge-slot select { font-size: 11px; padding: 5px; }
 
-      /* 금/보라 쐐기 색상 */
+      /* 쐐기 등급 색상: 노랑/보라/파랑/초록/회색 */
       option.grade-gold   { color: #f39c12; }
       option.grade-purple { color: #a855f7; }
+      option.grade-blue   { color: #3b9eff; }
+      option.grade-green  { color: #2ed573; }
+      option.grade-gray   { color: #888899; }
 
       /* 결과 카드 */
       .result-card {
@@ -231,8 +240,11 @@
             <div class="fg"><label>속성</label><select id="char-wf-elem" onchange="onWedgeFilterChange('char')"></select></div>
             <div class="fg"><label>등급</label><select id="char-wf-grade" onchange="onWedgeFilterChange('char')">
               <option value="all">전체</option>
-              <option value="gold">🥇 금색</option>
+              <option value="gray">⬜ 회색</option>
+              <option value="green">🟢 초록색</option>
+              <option value="blue">🔵 파란색</option>
               <option value="purple">💜 보라색</option>
+              <option value="gold">🥇 금색(노랑)</option>
             </select></div>
             <div class="filter-count"><span id="char-wf-count">-</span>개</div>
           </div>
@@ -271,8 +283,11 @@
             <div class="fg"><label>속성</label><select id="melee-wf-elem" onchange="onWedgeFilterChange('melee')"></select></div>
             <div class="fg"><label>등급</label><select id="melee-wf-grade" onchange="onWedgeFilterChange('melee')">
               <option value="all">전체</option>
-              <option value="gold">🥇 금색</option>
+              <option value="gray">⬜ 회색</option>
+              <option value="green">🟢 초록색</option>
+              <option value="blue">🔵 파란색</option>
               <option value="purple">💜 보라색</option>
+              <option value="gold">🥇 금색(노랑)</option>
             </select></div>
             <div class="filter-count"><span id="melee-wf-count">-</span>개</div>
           </div>
@@ -311,77 +326,131 @@
             <div class="fg"><label>속성</label><select id="ranged-wf-elem" onchange="onWedgeFilterChange('ranged')"></select></div>
             <div class="fg"><label>등급</label><select id="ranged-wf-grade" onchange="onWedgeFilterChange('ranged')">
               <option value="all">전체</option>
-              <option value="gold">🥇 금색</option>
+              <option value="gray">⬜ 회색</option>
+              <option value="green">🟢 초록색</option>
+              <option value="blue">🔵 파란색</option>
               <option value="purple">💜 보라색</option>
+              <option value="gold">🥇 금색(노랑)</option>
             </select></div>
             <div class="filter-count"><span id="ranged-wf-count">-</span>개</div>
           </div>
           <div class="wedge-matrix" id="ranged-wedge-matrix"></div>
         </div>
 
-        <div class="input-group">
-          <label>가상 스킬 배율 (%)</label>
-          <input type="number" id="skill-multiplier" value="250" oninput="calculateAll()"/>
+        <!-- 스킬 / 무기 입력 -->
+        <h2 style="margin-top:20px">⚙️ 대미지 계산 설정</h2>
+        <div style="background:#1a1a1e;border:1px solid #29292e;border-radius:8px;padding:14px;margin-bottom:8px">
+          <div style="font-size:12px;color:#f39c12;font-weight:bold;margin-bottom:8px">📐 스킬 대미지 설정</div>
+          <div class="input-row">
+            <div class="input-group"><label>스킬 배율 (%)</label><input type="number" id="skill-multiplier" value="250" oninput="calculateAll()"/></div>
+            <div class="input-group"><label>스킬 대미지 증가 (%)</label><input type="number" id="skill-dmg-bonus" value="0" oninput="calculateAll()"/></div>
+            <div class="input-group"><label>입히는 대미지 증가 (%)</label><input type="number" id="deal-dmg-bonus" value="0" oninput="calculateAll()"/></div>
+          </div>
+          <div style="font-size:12px;color:#f39c12;font-weight:bold;margin-bottom:8px;margin-top:4px">⚔️ 근접 무기 대미지 설정</div>
+          <div class="input-row">
+            <div class="input-group"><label>무기 대미지 배율 (%)</label><input type="number" id="melee-wpn-mult" value="100" oninput="calculateAll()"/></div>
+            <div class="input-group"><label>무기 대미지 증가 (%)</label><input type="number" id="melee-dmg-bonus" value="0" oninput="calculateAll()"/></div>
+            <div class="input-group"><label>마스터리 보유</label>
+              <select id="melee-mastery" onchange="calculateAll()">
+                <option value="120">✅ 보유 (×120%)</option>
+                <option value="100">❌ 미보유 (×100%)</option>
+              </select>
+            </div>
+            <div class="input-group"><label>크리티컬 확률 (%)</label><input type="number" id="melee-crit-rate" value="0" oninput="calculateAll()"/></div>
+            <div class="input-group"><label>크리티컬 대미지 (%)</label><input type="number" id="melee-crit-dmg" value="150" oninput="calculateAll()"/></div>
+          </div>
+          <div style="font-size:12px;color:#2ed573;font-weight:bold;margin-bottom:8px;margin-top:4px">🏹 원거리 무기 대미지 설정</div>
+          <div class="input-row">
+            <div class="input-group"><label>무기 대미지 배율 (%)</label><input type="number" id="ranged-wpn-mult" value="100" oninput="calculateAll()"/></div>
+            <div class="input-group"><label>무기 대미지 증가 (%)</label><input type="number" id="ranged-dmg-bonus" value="0" oninput="calculateAll()"/></div>
+            <div class="input-group"><label>마스터리 보유</label>
+              <select id="ranged-mastery" onchange="calculateAll()">
+                <option value="120">✅ 보유 (×120%)</option>
+                <option value="100">❌ 미보유 (×100%)</option>
+              </select>
+            </div>
+            <div class="input-group"><label>크리티컬 확률 (%)</label><input type="number" id="ranged-crit-rate" value="0" oninput="calculateAll()"/></div>
+            <div class="input-group"><label>크리티컬 대미지 (%)</label><input type="number" id="ranged-crit-dmg" value="150" oninput="calculateAll()"/></div>
+          </div>
         </div>
       </div>
 
       <!-- ═══════════════ 오른쪽 결과 박스 ═══════════════ -->
       <div class="box result-box">
-        <h2>📊 실시간 종합 스탯 연산</h2>
+        <h2>📊 실시간 종합 대미지 연산</h2>
 
-        <!-- 캐릭터 쐐기 합산 -->
-        <div class="result-card summary">
-          <div style="font-weight:bold;color:#8257e5;margin-bottom:8px">🔮 캐릭터 쐐기 합산</div>
-          <div class="result-row"><span>공격력 증가</span><span class="val" id="cw-atk" style="color:#f39c12">+0%</span></div>
-          <div class="result-row"><span>스킬 위력</span><span class="val" id="cw-sk" style="color:#f39c12">+0%</span></div>
-          <div class="result-row"><span>스킬 지속</span><span class="val" id="cw-dur" style="color:#f39c12">+0%</span></div>
-          <div class="result-row"><span>HP / DEF</span><span class="val" id="cw-surv" style="color:#a8a8b3">+0% / +0%</span></div>
-        </div>
-
-        <!-- 캐릭터 최종 스탯 -->
+        <!-- 캐릭터 스탯 -->
         <div class="result-card char-total">
-          <div style="font-weight:bold;color:#3498db;margin-bottom:8px">👤 캐릭터 최종 스탯 (무기 미포함)</div>
-          <div class="result-row"><span>순수 ATK</span><span class="val" id="c-pure-base">0</span></div>
-          <div class="result-row"><span>최종 공격력</span><span class="important-val" id="c-final-total" style="color:#3498db">0</span></div>
-          <div class="result-row" style="margin-top:4px;border-top:1px dashed #41414c;padding-top:4px">
-            <span>HP / 실드 / 방어</span><span class="val" id="c-final-surv" style="font-size:12px;color:#a8a8b3">0/0/0</span>
+          <div style="font-weight:bold;color:#3498db;margin-bottom:8px">👤 캐릭터 최종 스탯</div>
+          <div class="result-row"><span>기본 공격력</span><span class="val" id="c-pure-base">0</span></div>
+          <div class="result-row"><span>최종 공격력 <span style="font-size:10px;color:#7c7c8a">(쐐기 포함)</span></span><span class="important-val" id="c-final-total" style="color:#3498db">0</span></div>
+          <div class="result-row" style="font-size:12px;color:#a8a8b3;margin-top:4px;border-top:1px dashed #41414c;padding-top:4px">
+            <span>HP / 실드 / 방어</span><span id="c-final-surv">0/0/0</span>
           </div>
-          <div class="result-row"><span>위력 / 범위 / 지속</span><span class="val" id="c-final-sk-stats" style="font-size:12px;color:#a8a8b3">-</span></div>
-          <div class="result-row"><span>격양 / 필사</span><span class="val" id="c-final-buff-stats" style="font-size:12px;color:#a8a8b3">-</span></div>
+          <div class="result-row" style="font-size:12px;color:#a8a8b3">
+            <span>위력 / 범위 / 지속</span><span id="c-final-sk-stats">-</span>
+          </div>
+          <div class="result-row" style="font-size:12px;color:#a8a8b3">
+            <span>격양 / 필사</span><span id="c-final-buff-stats">-</span>
+          </div>
+          <div class="result-row" style="font-size:12px;color:#a8a8b3;border-top:1px dashed #41414c;padding-top:4px;margin-top:4px">
+            <span>필사 계수</span><span id="c-ds-coeff" style="color:#e67e22">×100%</span>
+          </div>
+          <div class="result-row" style="font-size:12px;color:#a8a8b3">
+            <span>격양 계수</span><span id="c-ex-coeff" style="color:#e67e22">×100%</span>
+          </div>
         </div>
 
-        <!-- 근접 -->
+        <!-- 스킬 대미지 -->
+        <div class="result-card" style="border-left-color:#9b59b6">
+          <div style="font-weight:bold;color:#9b59b6;margin-bottom:8px">🔮 최종 스킬 대미지</div>
+          <div class="result-row" style="font-size:12px;color:#a8a8b3"><span>기본 스킬 대미지</span><span id="sk-base">0</span></div>
+          <div class="result-row" style="font-size:12px;color:#a8a8b3"><span>스킬 대미지 증감 계수</span><span id="sk-dmg-coeff">×100%</span></div>
+          <div style="border-top:1px dashed #41414c;margin:6px 0;padding-top:6px">
+            <div class="result-row"><span>💥 최솟값 (×95%)</span><span class="val" id="sk-dmg-min" style="color:#9b59b6">0</span></div>
+            <div class="result-row"><span>💥 평균값</span><span class="important-val" id="sk-dmg-avg" style="color:#9b59b6">0</span></div>
+            <div class="result-row"><span>💥 최댓값 (×105%)</span><span class="val" id="sk-dmg-max" style="color:#9b59b6">0</span></div>
+          </div>
+        </div>
+
+        <!-- 근접 무기 대미지 -->
         <div class="result-card melee">
-          <div style="font-weight:bold;color:#ff4757;margin-bottom:6px">⚔️ 근접 무기 쐐기 합산</div>
-          <div class="wedge-totals-mini">
-            ATK <span id="mw-atk">+0%</span> &nbsp;|&nbsp; SK위력 <span id="mw-sk">+0%</span> &nbsp;|&nbsp; SK지속 <span id="mw-dur">+0%</span>
+          <div style="font-weight:bold;color:#ff4757;margin-bottom:8px">⚔️ 최종 근접 무기 대미지</div>
+          <div class="wedge-totals-mini" style="margin-bottom:8px">
+            쐐기ATK <span id="mw-atk">+0%</span> &nbsp;|&nbsp; 쐐기SK위력 <span id="mw-sk">+0%</span>
           </div>
-          <div class="result-row"><span>결합 깡공</span><span class="val" id="m-total-base">0</span></div>
-          <div class="result-row"><span>최종 공격력</span><span class="val" id="m-final-atk" style="color:#ff4757">0</span></div>
-          <div class="result-row" style="margin-top:6px">
-            <span>💥 예상 스킬 대미지</span>
-            <span class="important-val" id="m-expected-dmg" style="color:#ff4757">0</span>
+          <div class="result-row" style="font-size:12px;color:#a8a8b3"><span>캐릭 공 + 무기 깡공</span><span id="m-total-base">0</span></div>
+          <div class="result-row" style="font-size:12px;color:#a8a8b3"><span>기본 무기 대미지</span><span id="m-wpn-base">0</span></div>
+          <div class="result-row" style="font-size:12px;color:#a8a8b3"><span>크리티컬 계수</span><span id="m-crit-coeff">×100%</span></div>
+          <div class="result-row" style="font-size:12px;color:#a8a8b3"><span>무기 대미지 증감 계수</span><span id="m-wdmg-coeff">×100%</span></div>
+          <div style="border-top:1px dashed #41414c;margin:6px 0;padding-top:6px">
+            <div class="result-row"><span>💥 최솟값 (×95%)</span><span class="val" id="m-dmg-min" style="color:#ff4757">0</span></div>
+            <div class="result-row"><span>💥 평균값</span><span class="important-val" id="m-dmg-avg" style="color:#ff4757">0</span></div>
+            <div class="result-row"><span>💥 최댓값 (×105%)</span><span class="val" id="m-dmg-max" style="color:#ff4757">0</span></div>
           </div>
         </div>
 
-        <!-- 원거리 -->
+        <!-- 원거리 무기 대미지 -->
         <div class="result-card ranged">
-          <div style="font-weight:bold;color:#2ed573;margin-bottom:6px">🏹 원거리 무기 쐐기 합산</div>
-          <div class="wedge-totals-mini">
-            ATK <span id="rw-atk">+0%</span> &nbsp;|&nbsp; SK위력 <span id="rw-sk">+0%</span> &nbsp;|&nbsp; SK지속 <span id="rw-dur">+0%</span>
+          <div style="font-weight:bold;color:#2ed573;margin-bottom:8px">🏹 최종 원거리 무기 대미지</div>
+          <div class="wedge-totals-mini" style="margin-bottom:8px">
+            쐐기ATK <span id="rw-atk">+0%</span> &nbsp;|&nbsp; 쐐기SK위력 <span id="rw-sk">+0%</span>
           </div>
-          <div class="result-row"><span>결합 깡공</span><span class="val" id="r-total-base">0</span></div>
-          <div class="result-row"><span>최종 공격력</span><span class="val" id="r-final-atk" style="color:#2ed573">0</span></div>
-          <div class="result-row" style="margin-top:6px">
-            <span>💥 예상 스킬 대미지</span>
-            <span class="important-val" id="r-expected-dmg" style="color:#2ed573">0</span>
+          <div class="result-row" style="font-size:12px;color:#a8a8b3"><span>캐릭 공 + 무기 깡공</span><span id="r-total-base">0</span></div>
+          <div class="result-row" style="font-size:12px;color:#a8a8b3"><span>기본 무기 대미지</span><span id="r-wpn-base">0</span></div>
+          <div class="result-row" style="font-size:12px;color:#a8a8b3"><span>크리티컬 계수</span><span id="r-crit-coeff">×100%</span></div>
+          <div class="result-row" style="font-size:12px;color:#a8a8b3"><span>무기 대미지 증감 계수</span><span id="r-wdmg-coeff">×100%</span></div>
+          <div style="border-top:1px dashed #41414c;margin:6px 0;padding-top:6px">
+            <div class="result-row"><span>💥 최솟값 (×95%)</span><span class="val" id="r-dmg-min" style="color:#2ed573">0</span></div>
+            <div class="result-row"><span>💥 평균값</span><span class="important-val" id="r-dmg-avg" style="color:#2ed573">0</span></div>
+            <div class="result-row"><span>💥 최댓값 (×105%)</span><span class="val" id="r-dmg-max" style="color:#2ed573">0</span></div>
           </div>
         </div>
       </div>
     </div>
 
     <script>
-    // ═══════════════════════════════════════════════════════
+      // ═══════════════════════════════════════════════════════
     // 캐릭터 데이터
     // ═══════════════════════════════════════════════════════
     const characters = [
@@ -474,8 +543,9 @@
 
     // ═══════════════════════════════════════════════════════
     // 악마의 쐐기 데이터
-    // grade: "gold" = 금색, "purple" = 보라색
+    // grade: "gold" = 금색(노란색), "purple" = 보라색
     // elem: 물/불/바람/번개/빛/어둠 (속성전용·캐릭터전용만 해당 속성)
+    // 수치 출처: 쐐기 정리.txt (메카아라시 가이드)
     // ═══════════════════════════════════════════════════════
     const noneWedge = { id:"none", name:"❌ 장착 해제", atk:0, sk_pwr:0, sk_dur:0, hp:0, def:0 };
 
@@ -488,59 +558,153 @@
       { key:"불",   emoji:"🔥", abbr:"fr" },
     ];
 
-    // 시리즈 템플릿 (빛 기준 수치 → 전속성 복제)
-    // grade: 금색(gold) = 강력한 메인 옵션, 보라색(purple) = 보조 옵션
+    // ─────────────────────────────────────────────────────
+    // 공용 시리즈 템플릿 (6속성 자동 복제)
+    // ─────────────────────────────────────────────────────
     const seriesTemplates = [
-      { series:"불사조", emoji:"🔥", wedges:[
-        { suffix:"atk", label:"[가호]",      desc:"공격력 +20%",             grade:"gold",   atk:20, sk_pwr:0,  sk_dur:0,  hp:10, def:0  },
-        { suffix:"sk",  label:"[날개]",      desc:"스킬위력 +15%",           grade:"purple", atk:0,  sk_pwr:15, sk_dur:0,  hp:5,  def:5  },
-      ]},
-      { series:"세이렌", emoji:"🧜", wedges:[
-        { suffix:"sk",  label:"[노래]",      desc:"스킬위력 +25%",           grade:"gold",   atk:0,  sk_pwr:25, sk_dur:0,  hp:0,  def:10 },
-        { suffix:"def", label:"[파도]",      desc:"방어력 +20%",             grade:"purple", atk:0,  sk_pwr:0,  sk_dur:0,  hp:10, def:20 },
-      ]},
-      { series:"체인질링", emoji:"👥", wedges:[
-        { suffix:"bal", label:"[변환]",      desc:"공격 +15% / 스킬위력 +15%", grade:"gold", atk:15, sk_pwr:15, sk_dur:0,  hp:5,  def:5  },
-        { suffix:"hp",  label:"[그림자]",   desc:"HP +25%",                 grade:"purple", atk:0,  sk_pwr:0,  sk_dur:0,  hp:25, def:0  },
-      ]},
+
+      // [티폰] 전성 시리즈 — 공/체/방 + 서브옵션
       { series:"티폰", emoji:"🔱", wedges:[
-        { suffix:"atk",   label:"[격양/필사]", desc:"ATK +60%",              grade:"gold",   atk:60, sk_pwr:0,  sk_dur:0,  hp:15, def:15 },
-        { suffix:"chase", label:"[체이스]",    desc:"ATK +40%, 스킬위력 -10%",grade:"gold",  atk:40, sk_pwr:-10,sk_dur:0,  hp:10, def:10 },
-        { suffix:"sup",   label:"[분기/안심]", desc:"ATK +20%",              grade:"purple", atk:20, sk_pwr:0,  sk_dur:0,  hp:20, def:20 },
+        // 노란색 (+10/5) — 서브옵션별
+        { suffix:"atk_g",  label:"[전성·격양]",   desc:"공/체/방 +154%, 격양 서브",        grade:"gold",   atk:154, sk_pwr:0,   sk_dur:0, hp:154, def:154 },
+        { suffix:"atk_ds", label:"[전성·필사]",   desc:"공/체/방 +154%, 필사 +11%",        grade:"gold",   atk:154, sk_pwr:0,   sk_dur:0, hp:154, def:154 },
+        { suffix:"chase",  label:"[전성·체이스]",  desc:"공/체/방 +154%, 무기추뎀 +33%",    grade:"gold",   atk:154, sk_pwr:-50, sk_dur:0, hp:154, def:154 },
+        { suffix:"safe",   label:"[전성·안심]",   desc:"공/체/방 +154%, 팀원 정신력 회복",  grade:"gold",   atk:154, sk_pwr:0,   sk_dur:0, hp:154, def:154 },
+        { suffix:"bun",    label:"[전성·분기]",   desc:"공/체/방 +154%, 피해량 +20%",      grade:"gold",   atk:154, sk_pwr:0,   sk_dur:0, hp:154, def:154 },
+        // 보라색 (+5/5) — 서브옵션별
+        { suffix:"sup_g",  label:"[전성·격양·보라]",desc:"공/체/방 +75%, 격양 서브",        grade:"purple", atk:75,  sk_pwr:0,   sk_dur:0, hp:75,  def:75  },
+        { suffix:"sup_ds", label:"[전성·필사·보라]",desc:"공/체/방 +75%, 필사 +6%",         grade:"purple", atk:75,  sk_pwr:0,   sk_dur:0, hp:75,  def:75  },
+        { suffix:"sup_ch", label:"[전성·체이스·보라]",desc:"공/체/방 +75%, 무기추뎀 +18%",  grade:"purple", atk:75,  sk_pwr:-30, sk_dur:0, hp:75,  def:75  },
+        { suffix:"sup_sf", label:"[전성·안심·보라]",desc:"공/체/방 +75%, 팀원 정신력 회복", grade:"purple", atk:75,  sk_pwr:0,   sk_dur:0, hp:75,  def:75  },
+        { suffix:"sup_bn", label:"[전성·분기·보라]",desc:"공/체/방 +75%, 피해량 +11%",      grade:"purple", atk:75,  sk_pwr:0,   sk_dur:0, hp:75,  def:75  },
+        // 파란색 (+5/5) — Lv.30 의뢰
+        { suffix:"blue",   label:"[전성·파랑]",   desc:"공/체/방 +60%",                    grade:"blue",   atk:60,  sk_pwr:0,   sk_dur:0, hp:60,  def:60  },
+        // 초록색 (+3/3) — Lv.20 의뢰
+        { suffix:"green",  label:"[전성·초록]",   desc:"공/체/방 +40%",                    grade:"green",  atk:40,  sk_pwr:0,   sk_dur:0, hp:40,  def:40  },
+        // 회색 (+3/3) — Lv.20 의뢰
+        { suffix:"gray",   label:"[전성·회색]",   desc:"공/체/방 +20%",                    grade:"gray",   atk:20,  sk_pwr:0,   sk_dur:0, hp:20,  def:20  },
       ]},
+
+      // [그리핀] 결단/기나긴밤/요원 시리즈
       { series:"그리핀", emoji:"🦅", wedges:[
-        { suffix:"spd",   label:"[기류]",    desc:"스킬지속 +20%",           grade:"gold",   atk:10, sk_pwr:0,  sk_dur:20, hp:0,  def:0  },
-        { suffix:"atk",   label:"[발톱]",    desc:"공격력 +12%",             grade:"purple", atk:12, sk_pwr:0,  sk_dur:0,  hp:0,  def:0  },
+        // 노란색 (+10/5)
+        { suffix:"agent_g",  label:"[요원]",           desc:"속성공 +33%, 스킬위력 +33%, 스킬범위 +33%",  grade:"gold",   atk:33, sk_pwr:33, sk_dur:0,  hp:0, def:0 },
+        { suffix:"night_g",  label:"[기나긴 밤]",      desc:"속성공 +33%, 스킬위력 +33%, 스킬지속 +22%",  grade:"gold",   atk:33, sk_pwr:33, sk_dur:22, hp:0, def:0 },
+        // 보라색 (+5/5)
+        { suffix:"agent_p",  label:"[요원·보라]",      desc:"속성공 +18%, 스킬위력 +18%, 스킬범위 +18%",  grade:"purple", atk:18, sk_pwr:18, sk_dur:0,  hp:0, def:0 },
+        { suffix:"night_p",  label:"[기나긴밤·보라]",  desc:"속성공 +18%, 스킬위력 +18%, 스킬지속 +12%",  grade:"purple", atk:18, sk_pwr:18, sk_dur:12, hp:0, def:0 },
+        // 파란색 (+5/5) — Lv.30 의뢰
+        { suffix:"resolve",  label:"[결단·파랑]",      desc:"속성공 +18%, 스킬위력 +18%",                 grade:"blue",   atk:18, sk_pwr:18, sk_dur:0,  hp:0, def:0 },
       ]},
+
+      // [스핑크스] 조건부 대미지 시리즈
       { series:"스핑크스", emoji:"🦁", wedges:[
-        { suffix:"def",   label:"[수수께끼]", desc:"방어력 +30%",            grade:"gold",   atk:0,  sk_pwr:0,  sk_dur:0,  hp:10, def:30 },
-        { suffix:"hp",    label:"[비밀]",    desc:"HP +20%",                 grade:"purple", atk:0,  sk_pwr:0,  sk_dur:0,  hp:20, def:10 },
+        { suffix:"duel_g",   label:"[결투]",      desc:"주변 적 ≤2 피해 +44%",      grade:"gold",   atk:0,  sk_pwr:44, sk_dur:0, hp:0,   def:0   },
+        { suffix:"rout_g",   label:"[승세]",      desc:"그로기 적 피해 +44%",        grade:"gold",   atk:0,  sk_pwr:44, sk_dur:0, hp:0,   def:0   },
+        { suffix:"brave_g",  label:"[용맹]",      desc:"전투시작 30s 스킬위력 +100% (HP -50%)", grade:"gold", atk:0, sk_pwr:100, sk_dur:0, hp:-50, def:0  },
+        { suffix:"charge_g", label:"[진격]",      desc:"적 처치시 공격력 스택↑, 받는 피해 -22%", grade:"gold", atk:11, sk_pwr:0, sk_dur:0, hp:0, def:0   },
+        { suffix:"swarm_g",  label:"[함진]",      desc:"주변 20m 적 1명당 피해 +2.2% (최대 44%)", grade:"gold", atk:0, sk_pwr:0, sk_dur:0, hp:0, def:0  },
+        { suffix:"revive_g", label:"[불식]",      desc:"부활 1회당 공격력 +77% (최대 231%)",       grade:"gold", atk:77, sk_pwr:0, sk_dur:0, hp:0, def:0  },
+        { suffix:"duel_p",   label:"[결투·보라]", desc:"주변 적 ≤2 피해 +24%",      grade:"purple", atk:0,  sk_pwr:24, sk_dur:0, hp:0,   def:0   },
+        { suffix:"rout_p",   label:"[승세·보라]", desc:"그로기 적 피해 +24%",        grade:"purple", atk:0,  sk_pwr:24, sk_dur:0, hp:0,   def:0   },
       ]},
+
+      // [메피스토] 속성별 스탯·유틸형 (공용 수치)
       { series:"메피스토", emoji:"😈", wedges:[
-        { suffix:"ext",   label:"[소멸(Δ)]",  desc:"공격 +96%",             grade:"gold",   atk:96, sk_pwr:0,  sk_dur:0,  hp:0,  def:0  },
-        { suffix:"dec",   label:"[작열/결단]",desc:"공격 +48% / 스킬위력 +24%",grade:"gold",atk:48, sk_pwr:24, sk_dur:0,  hp:0,  def:0  },
-        { suffix:"lif",   label:"[작열/환생]",desc:"공격 +48% / HP +48%",   grade:"purple", atk:48, sk_pwr:0,  sk_dur:0,  hp:48, def:0  },
+        { suffix:"melt",     label:"[소멸]",       desc:"공격력 +176%",                             grade:"gold",   atk:176, sk_pwr:0,  sk_dur:0,  hp:0,  def:0  },
+        { suffix:"atk_sp",   label:"[작열·결단]",  desc:"공격력 +88%, 스킬위력 +44%",              grade:"gold",   atk:88,  sk_pwr:44, sk_dur:0,  hp:0,  def:0  },
+        { suffix:"atk_dur",  label:"[작열·영원]",  desc:"공격력 +88%, 스킬지속 +33%",              grade:"gold",   atk:88,  sk_pwr:0,  sk_dur:33, hp:0,  def:0  },
+        { suffix:"atk_rng",  label:"[작열·권능]",  desc:"공격력 +88%, 스킬범위 +55%",              grade:"gold",   atk:88,  sk_pwr:0,  sk_dur:0,  hp:0,  def:0  },
+        { suffix:"atk_eff",  label:"[작열·고무]",  desc:"공격력 +88%, 스킬효율 +22%",              grade:"gold",   atk:88,  sk_pwr:0,  sk_dur:0,  hp:0,  def:0  },
+        { suffix:"atk_hp",   label:"[작열·환생]",  desc:"공격력 +88%, HP +88%",                    grade:"gold",   atk:88,  sk_pwr:0,  sk_dur:0,  hp:88, def:0  },
+        { suffix:"atk_def",  label:"[작열·수호]",  desc:"공격력 +88%, 방어력 +88%",                grade:"gold",   atk:88,  sk_pwr:0,  sk_dur:0,  hp:0,  def:88 },
+        { suffix:"atk_g_p",  label:"[작열·필사]",  desc:"공격력 +88%, 필사 +7.3%",                 grade:"gold",   atk:88,  sk_pwr:0,  sk_dur:0,  hp:0,  def:0  },
+        { suffix:"atk_ex_p", label:"[작열·격양]",  desc:"공격력 +88%, 격양 +22%",                  grade:"gold",   atk:88,  sk_pwr:0,  sk_dur:0,  hp:0,  def:0  },
+        { suffix:"hp_sp",    label:"[환생·결단]",  desc:"HP +88%, 스킬위력 +44%",                  grade:"purple", atk:0,   sk_pwr:44, sk_dur:0,  hp:88, def:0  },
+        { suffix:"hp_rng",   label:"[환생·권능]",  desc:"HP +88%, 스킬범위 +55%",                  grade:"purple", atk:0,   sk_pwr:0,  sk_dur:0,  hp:88, def:0  },
+        { suffix:"def_dur",  label:"[수호·영원]",  desc:"방어력 +88%, 스킬지속 +33%",              grade:"purple", atk:0,   sk_pwr:0,  sk_dur:33, hp:0,  def:88 },
+        { suffix:"def_eff",  label:"[수호·고무]",  desc:"방어력 +88%, 스킬효율 +22%",              grade:"purple", atk:0,   sk_pwr:0,  sk_dur:0,  hp:0,  def:88 },
+        { suffix:"mt_sp",    label:"[날개·결단]",  desc:"정신력 +44%, 스킬위력 +44%",              grade:"purple", atk:0,   sk_pwr:44, sk_dur:0,  hp:0,  def:0  },
+        { suffix:"mt_dur",   label:"[날개·영원]",  desc:"정신력 +44%, 스킬지속 +33%",              grade:"purple", atk:0,   sk_pwr:0,  sk_dur:33, hp:0,  def:0  },
+        { suffix:"melt_p",   label:"[소멸·보라]",  desc:"공격력 +96%",                             grade:"purple", atk:96,  sk_pwr:0,  sk_dur:0,  hp:0,  def:0  },
       ]},
+
+      // [요르문간드] 무기군 시너지 시리즈
       { series:"요르문간드", emoji:"🐉", wedges:[
-        { suffix:"hp",    label:"[독기]",    desc:"최대 HP +35%",            grade:"gold",   atk:10, sk_pwr:0,  sk_dur:0,  hp:35, def:0  },
-        { suffix:"def",   label:"[비늘]",    desc:"방어력 +20% / HP +10%",  grade:"purple", atk:0,  sk_pwr:0,  sk_dur:0,  hp:10, def:20 },
+        { suffix:"syn_g",  label:"[시너지]",        desc:"무기 1개 장착당 피해 +11% (최대 33%)",    grade:"gold",   atk:11, sk_pwr:0, sk_dur:0, hp:0, def:0 },
+        { suffix:"syn_p",  label:"[시너지·보라]",   desc:"무기 1개 장착당 피해 +6% (최대 18%)",    grade:"purple", atk:6,  sk_pwr:0, sk_dur:0, hp:0, def:0 },
       ]},
+
+      // [판] 스킬 특화 시리즈
       { series:"판", emoji:"🐐", wedges:[
-        { suffix:"cr",    label:"[장난]",    desc:"스킬지속 +15% / 격양 +10%",grade:"gold",  atk:10, sk_pwr:0,  sk_dur:15, hp:0,  def:10 },
-        { suffix:"sk",    label:"[피리]",    desc:"스킬위력 +20%",           grade:"purple", atk:0,  sk_pwr:20, sk_dur:0,  hp:0,  def:0  },
+        // 파란색 기본형 (+5/5)
+        { suffix:"sk_pwr",   label:"[결단]",         desc:"스킬위력 +24%",                    grade:"blue",   atk:0, sk_pwr:24, sk_dur:0,  hp:0,   def:0   },
+        { suffix:"sk_eff",   label:"[고무]",         desc:"스킬효율 +16%",                    grade:"blue",   atk:0, sk_pwr:0,  sk_dur:0,  hp:0,   def:0   },
+        { suffix:"sk_rng",   label:"[권능]",         desc:"스킬범위 +30%",                    grade:"blue",   atk:0, sk_pwr:0,  sk_dur:0,  hp:0,   def:0   },
+        { suffix:"sk_dur",   label:"[영원]",         desc:"스킬지속 +20%",                    grade:"blue",   atk:0, sk_pwr:0,  sk_dur:20, hp:0,   def:0   },
+        // 파란색 디메리트 하이브리드형 (+5/5)
+        { suffix:"eff_shd",  label:"[고무·흩어짐]",  desc:"스킬효율 +18%, 실드 -24%",         grade:"blue",   atk:0, sk_pwr:0,  sk_dur:0,  hp:0,   def:0   },
+        { suffix:"eff_hp",   label:"[고무·사라짐]",  desc:"스킬효율 +18%, HP -24%",           grade:"blue",   atk:0, sk_pwr:0,  sk_dur:0,  hp:-24, def:0   },
+        { suffix:"mt_shd",   label:"[날개·흩어짐]",  desc:"최대 정신력 +48%, 실드 -30%",      grade:"blue",   atk:0, sk_pwr:0,  sk_dur:0,  hp:0,   def:0   },
+        { suffix:"mt_hp",    label:"[날개·사라짐]",  desc:"최대 정신력 +48%, HP -30%",        grade:"blue",   atk:0, sk_pwr:0,  sk_dur:0,  hp:-30, def:0   },
+        // 보라색 패널티 교환형
+        { suffix:"rng_pwr",  label:"[권능·징조]",    desc:"스킬범위 +50%, 스킬위력 -30%",     grade:"purple", atk:0, sk_pwr:-30,sk_dur:0,  hp:0,   def:0   },
+        { suffix:"dur_rng",  label:"[영원·극기]",    desc:"스킬지속 +40%, 스킬범위 -60%",     grade:"purple", atk:0, sk_pwr:0,  sk_dur:40, hp:0,   def:0   },
       ]},
     ];
 
-    // 코어 슬롯 (쿠쿨칸) - 6속성 × 2종
+    // 코어 슬롯 (쿠쿨칸) — 실제 위키 데이터 기준
+    // 일반형(6속성 공용) + 속성전용(격양/결단/권능/필사/영원)
     const coreWedgeDatabase = {};
-    ELEMS.forEach(({ key, emoji, abbr }) => {
-      coreWedgeDatabase[`${emoji} 쿠쿨칸 (${key})`] = [
-        { id:`kk_${abbr}_atk`, name:`🔱 쿠쿨칸 [투지] ${emoji}${key} (ATK +50%)`,      grade:"gold",   atk:50, sk_pwr:0,  sk_dur:0,  hp:10, def:10, series:"쿠쿨칸", elem:key },
-        { id:`kk_${abbr}_sk`,  name:`🔱 쿠쿨칸 [지혜] ${emoji}${key} (스킬위력 +40%)`, grade:"purple", atk:0,  sk_pwr:40, sk_dur:10, hp:10, def:10, series:"쿠쿨칸", elem:key },
-      ];
-    });
 
-    // 외곽 슬롯 - 9시리즈 × 6속성 자동 생성
+    // ── 일반(공용) 쿠쿨칸 — 전 속성 공통 ──
+    const kkCommon = [
+      { id:"kk_atk",    name:"🔱 쿠쿨칸 [격동] (착지 시 공격 128% 진동뎀)",    grade:"purple", atk:0,  sk_pwr:0,  sk_dur:0, hp:0,  def:0,  series:"쿠쿨칸", elem:"공용" },
+      { id:"kk_def",    name:"🔱 쿠쿨칸 [경계] (피격 시 50% 확률로 대미지 20% 감소)", grade:"purple", atk:0, sk_pwr:0, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"공용" },
+      { id:"kk_heal",   name:"🔱 쿠쿨칸 [구제] (종결 스킬 시 팀원 최대HP 3% 치료)", grade:"purple", atk:0, sk_pwr:0, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"공용" },
+      { id:"kk_jump",   name:"🔱 쿠쿨칸 [도약] (공중 적 처치 시 점프 횟수 리셋 최대 6회)", grade:"purple", atk:0, sk_pwr:0, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"공용" },
+      { id:"kk_tank",   name:"🔱 쿠쿨칸 [반석] (경직 면역, 자신 대미지 -15%)",   grade:"purple", atk:-15, sk_pwr:0, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"공용" },
+      { id:"kk_surv",   name:"🔱 쿠쿨칸 [불굴] (치명타 시 HP 1로 생존, 300s 쿨다운)", grade:"purple", atk:0, sk_pwr:0, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"공용" },
+      { id:"kk_spd",    name:"🔱 쿠쿨칸 [수신] (피격 시간 가속 +50%)",          grade:"purple", atk:0,  sk_pwr:0,  sk_dur:0, hp:0,  def:0,  series:"쿠쿨칸", elem:"공용" },
+      { id:"kk_fire",   name:"🔱 쿠쿨칸 [점화] (회피 시 시작점 주변 공격 256% 불뎀)", grade:"purple", atk:0, sk_pwr:0, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"공용" },
+      { id:"kk_aerial", name:"🔱 쿠쿨칸 [차단] (공중 피해 -10%)",               grade:"purple", atk:0,  sk_pwr:0,  sk_dur:0, hp:0,  def:0,  series:"쿠쿨칸", elem:"공용" },
+      { id:"kk_dodge",  name:"🔱 쿠쿨칸 [퇴피] (회피 횟수 +1)",                 grade:"purple", atk:0,  sk_pwr:0,  sk_dur:0, hp:0,  def:0,  series:"쿠쿨칸", elem:"공용" },
+      { id:"kk_spiral", name:"🔱 쿠쿨칸 [회전 칼날] (스파이럴 점프 시 공격 256% 바람뎀)", grade:"purple", atk:0, sk_pwr:0, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"공용" },
+    ];
+    coreWedgeDatabase["🔱 쿠쿨칸 (일반·공용)"] = kkCommon;
+
+    // ── 속성전용 쿠쿨칸 ──
+    // 격양: 빛 전용
+    coreWedgeDatabase["✨ 쿠쿨칸 격양 (빛)"] = [
+      { id:"kk_ex_lt_p",  name:"🔱 쿠쿨칸 [격양] ✨빛 +5/5 (격양 +36%)",  grade:"purple", atk:0, sk_pwr:0, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"빛" },
+      { id:"kk_ex_lt_g",  name:"🔱 쿠쿨칸 [격양] ✨빛 +10/5 (격양 +66%)", grade:"gold",   atk:0, sk_pwr:0, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"빛" },
+    ];
+    // 결단: 번개·빛 전용
+    coreWedgeDatabase["⚡ 쿠쿨칸 결단 (번개)"] = [
+      { id:"kk_sp_td_p",  name:"🔱 쿠쿨칸 [결단] ⚡번개 +5/5 (스킬위력 +48%)",  grade:"purple", atk:0, sk_pwr:48, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"번개" },
+      { id:"kk_sp_td_g",  name:"🔱 쿠쿨칸 [결단] ⚡번개 +10/5 (스킬위력 +88%)", grade:"gold",   atk:0, sk_pwr:88, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"번개" },
+    ];
+    coreWedgeDatabase["✨ 쿠쿨칸 결단 (빛)"] = [
+      { id:"kk_sp_lt_p",  name:"🔱 쿠쿨칸 [결단] ✨빛 +5/5 (스킬위력 +48%)",  grade:"purple", atk:0, sk_pwr:48, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"빛" },
+      { id:"kk_sp_lt_g",  name:"🔱 쿠쿨칸 [결단] ✨빛 +10/5 (스킬위력 +88%)", grade:"gold",   atk:0, sk_pwr:88, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"빛" },
+    ];
+    // 권능: 번개 전용
+    coreWedgeDatabase["⚡ 쿠쿨칸 권능 (번개)"] = [
+      { id:"kk_rng_td_p", name:"🔱 쿠쿨칸 [권능] ⚡번개 +5/5 (스킬범위 +72%)",   grade:"purple", atk:0, sk_pwr:0, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"번개" },
+      { id:"kk_rng_td_g", name:"🔱 쿠쿨칸 [권능] ⚡번개 +10/5 (스킬범위 +132%)", grade:"gold",   atk:0, sk_pwr:0, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"번개" },
+    ];
+    // 필사: 바람 전용
+    coreWedgeDatabase["🌪️ 쿠쿨칸 필사 (바람)"] = [
+      { id:"kk_ds_wd_p",  name:"🔱 쿠쿨칸 [필사] 🌪️바람 +5/5 (필사 +12%)",  grade:"purple", atk:0, sk_pwr:0, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"바람" },
+      { id:"kk_ds_wd_g",  name:"🔱 쿠쿨칸 [필사] 🌪️바람 +10/5 (필사 +22%)", grade:"gold",   atk:0, sk_pwr:0, sk_dur:0, hp:0, def:0, series:"쿠쿨칸", elem:"바람" },
+    ];
+    // 영원: 바람 전용
+    coreWedgeDatabase["🌪️ 쿠쿨칸 영원 (바람)"] = [
+      { id:"kk_dur_wd_p", name:"🔱 쿠쿨칸 [영원] 🌪️바람 +5/5 (스킬지속 +36%)",  grade:"purple", atk:0, sk_pwr:0, sk_dur:36, hp:0, def:0, series:"쿠쿨칸", elem:"바람" },
+      { id:"kk_dur_wd_g", name:"🔱 쿠쿨칸 [영원] 🌪️바람 +10/5 (스킬지속 +66%)", grade:"gold",   atk:0, sk_pwr:0, sk_dur:66, hp:0, def:0, series:"쿠쿨칸", elem:"바람" },
+    ];
+
+    // 외곽 슬롯 - 시리즈 × 6속성 자동 생성
     const outerWedgeDatabase = {};
     seriesTemplates.forEach(({ series, emoji, wedges }) => {
       ELEMS.forEach(({ key, emoji: ee, abbr }) => {
@@ -555,19 +719,40 @@
       });
     });
 
-    // 속성전용 (각 속성 고유 효과)
-    outerWedgeDatabase["💎 속성전용"] = [
-      { id:"sp_lt_prism", name:"✨ 금오의 프리즘 [빛 특화] (스킬지속 +24%)",  grade:"gold",   atk:0, sk_pwr:0,  sk_dur:24, hp:0, def:0, series:"속성전용", elem:"빛"  },
-      { id:"sp_dk_void",  name:"🌑 공허의 낙인 [어둠 특화] (스킬위력 +30%)", grade:"gold",   atk:0, sk_pwr:30, sk_dur:0,  hp:0, def:0, series:"속성전용", elem:"어둠" },
-      { id:"sp_wd_storm", name:"🌪️ 폭풍의 눈 [바람 특화] (스킬위력 +30%)",  grade:"gold",   atk:0, sk_pwr:30, sk_dur:0,  hp:0, def:0, series:"속성전용", elem:"바람" },
-      { id:"sp_td_bolt",  name:"⚡ 낙뢰의 각인 [번개 특화] (스킬위력 +30%)", grade:"gold",   atk:0, sk_pwr:30, sk_dur:0,  hp:0, def:0, series:"속성전용", elem:"번개" },
-      { id:"sp_wt_tide",  name:"💧 조류의 파동 [물 특화] (스킬위력 +30%)",   grade:"gold",   atk:0, sk_pwr:30, sk_dur:0,  hp:0, def:0, series:"속성전용", elem:"물"  },
-      { id:"sp_fr_fire",  name:"🔥 이프리트의 들불 [불 특화] (스킬위력 +30%)",grade:"gold",  atk:0, sk_pwr:30, sk_dur:0,  hp:0, def:0, series:"속성전용", elem:"불"  },
+    // ─────────────────────────────────────────────────────
+    // 속성전용 — 신수 시리즈 (바하무트/이프리트/하스터/숨마누스/금오/심판자)
+    // ─────────────────────────────────────────────────────
+    outerWedgeDatabase["💧 바하무트 (물)"] = [
+      { id:"sp_wt_baha1", name:"💧 바하무트 [격렬한 한파] (스킬위력 +55%, 팀원 공격력 버프)",  grade:"gold",   atk:0, sk_pwr:55, sk_dur:0,  hp:0, def:0, series:"속성전용", elem:"물" },
+      { id:"sp_wt_baha2", name:"💧 바하무트 [흩뿌려진 물안개] (스킬위력 +55%, 소환물 버프)",   grade:"gold",   atk:0, sk_pwr:55, sk_dur:0,  hp:0, def:0, series:"속성전용", elem:"물" },
+      { id:"sp_wt_baha1p",name:"💧 바하무트 [격렬한 한파·보라] (스킬위력 +30%)",               grade:"purple", atk:0, sk_pwr:30, sk_dur:0,  hp:0, def:0, series:"속성전용", elem:"물" },
+    ];
+    outerWedgeDatabase["🔥 이프리트 (불)"] = [
+      { id:"sp_fr_ifrit1",name:"🔥 이프리트 [마음을 태우는 들불] (스킬위력 +55%, 공격력 스택↑)", grade:"gold",   atk:0, sk_pwr:55, sk_dur:0, hp:0, def:0, series:"속성전용", elem:"불" },
+      { id:"sp_fr_ifrit1p",name:"🔥 이프리트 [마음을 태우는 들불·보라] (스킬위력 +30%)",         grade:"purple", atk:0, sk_pwr:30, sk_dur:0, hp:0, def:0, series:"속성전용", elem:"불" },
+    ];
+    outerWedgeDatabase["🌪️ 하스터 (바람)"] = [
+      { id:"sp_wd_hast1", name:"🌪️ 하스터 [향기로운 기운] (스킬위력 +55%, 6s 스킬위력 폭발)", grade:"gold",   atk:0, sk_pwr:55, sk_dur:0,  hp:0, def:0, series:"속성전용", elem:"바람" },
+      { id:"sp_wd_hast2", name:"🌪️ 하스터 [혼돈의 소용돌이] (스킬지속 +44%, 팀원 필사 버프)", grade:"gold",   atk:0, sk_pwr:0,  sk_dur:44, hp:0, def:0, series:"속성전용", elem:"바람" },
+      { id:"sp_wd_hast1p",name:"🌪️ 하스터 [향기로운 기운·보라] (스킬위력 +30%)",               grade:"purple", atk:0, sk_pwr:30, sk_dur:0,  hp:0, def:0, series:"속성전용", elem:"바람" },
+    ];
+    outerWedgeDatabase["⚡ 숨마누스 (번개)"] = [
+      { id:"sp_td_summ1", name:"⚡ 숨마누스 [파괴의 뇌운] (스킬위력 +55%, 스킬대미지 스택↑)",  grade:"gold",   atk:0, sk_pwr:55, sk_dur:0, hp:0, def:0, series:"속성전용", elem:"번개" },
+      { id:"sp_td_summ1p",name:"⚡ 숨마누스 [파괴의 뇌운·보라] (스킬위력 +30%)",                grade:"purple", atk:0, sk_pwr:30, sk_dur:0, hp:0, def:0, series:"속성전용", elem:"번개" },
+    ];
+    outerWedgeDatabase["✨ 금오 (빛)"] = [
+      { id:"sp_lt_geum1", name:"✨ 금오 [눈부신 빛줄기] (스킬지속 +44%, 지속 비례 공격력↑)",   grade:"gold",   atk:0, sk_pwr:0,  sk_dur:44, hp:0, def:0, series:"속성전용", elem:"빛" },
+      { id:"sp_lt_geum2", name:"✨ 금오 [프리즘] (스킬지속 +44%, 원소 디버프 시 피크리↑)",      grade:"gold",   atk:0, sk_pwr:0,  sk_dur:44, hp:0, def:0, series:"속성전용", elem:"빛" },
+      { id:"sp_lt_geum1p",name:"✨ 금오 [눈부신 빛줄기·보라] (스킬지속 +24%)",                  grade:"purple", atk:0, sk_pwr:0,  sk_dur:24, hp:0, def:0, series:"속성전용", elem:"빛" },
+    ];
+    outerWedgeDatabase["🌑 심판자 (어둠)"] = [
+      { id:"sp_dk_judg1", name:"🌑 심판자 [허망한 의식] (스킬위력 +55%, 정신력 소모 시 무기 크리↑)", grade:"gold",   atk:0, sk_pwr:55, sk_dur:0, hp:0, def:0, series:"속성전용", elem:"어둠" },
+      { id:"sp_dk_judg1p",name:"🌑 심판자 [허망한 의식·보라] (스킬위력 +30%)",                       grade:"purple", atk:0, sk_pwr:30, sk_dur:0, hp:0, def:0, series:"속성전용", elem:"어둠" },
     ];
 
-    // 캐릭터 전용
+    // 캐릭터 전용 (소을 등)
     outerWedgeDatabase["👤 캐릭터 전용"] = [
-      { id:"ch_sig", name:"👤 싱크로니시티 [전용 특화] (공격력 +25%)", grade:"purple", atk:25, sk_pwr:10, sk_dur:10, hp:0, def:0, series:"캐릭터 전용", elem:"공용" },
+      { id:"ch_soeul_track", name:"👤 [소을 전용] 바람의 주인 3호 추적 모드 (스킬위력 +55%, 추적 포탄 변환)", grade:"gold", atk:0, sk_pwr:55, sk_dur:0, hp:0, def:0, series:"캐릭터 전용", elem:"빛" },
     ];
 
     // 플랫 리스트
@@ -591,8 +776,8 @@
     function buildFilterDropdowns(prefix) {
       // 시리즈
       const seriesSel = document.getElementById(`${prefix}-wf-series`);
-      const allSeries = ["all","쿠쿨칸","불사조","세이렌","체인질링","티폰","그리핀","스핑크스","메피스토","요르문간드","판","속성전용","캐릭터 전용"];
-      const seriesEmoji = { "all":"🔄", "쿠쿨칸":"🔱", "불사조":"🔥", "세이렌":"🧜", "체인질링":"👥", "티폰":"🔱", "그리핀":"🦅", "스핑크스":"🦁", "메피스토":"😈", "요르문간드":"🐉", "판":"🐐", "속성전용":"💎", "캐릭터 전용":"👤" };
+      const allSeries = ["all","쿠쿨칸","티폰","그리핀","스핑크스","메피스토","요르문간드","판","속성전용","캐릭터 전용"];
+      const seriesEmoji = { "all":"🔄", "쿠쿨칸":"🔱", "티폰":"🔱", "그리핀":"🦅", "스핑크스":"🦁", "메피스토":"😈", "요르문간드":"🐉", "판":"🐐", "속성전용":"💎", "캐릭터 전용":"👤" };
       allSeries.forEach(s => {
         const o = document.createElement("option"); o.value = s;
         o.textContent = s === "all" ? "🔄 전체 시리즈" : `${seriesEmoji[s]} ${s}`;
@@ -645,24 +830,50 @@
     // ═══════════════════════════════════════════════════════
     // 슬롯 셀렉트 옵션 재구성
     // ═══════════════════════════════════════════════════════
-    function rebuildSlotSelect(sel, database, currentVal) {
-      const prev = currentVal ?? sel.value;
+    function rebuildSlotSelect(sel, fullOuterDB, fullCoreDB, isCore) {
+      const prev = sel.value;
       sel.innerHTML = "";
-      const no = document.createElement("option"); no.value = "none"; no.textContent = "❌ 장착 해제";
+      const no = document.createElement("option");
+      no.value = "none"; no.textContent = "❌ 장착 해제";
       sel.appendChild(no);
-      Object.entries(database).forEach(([cat, wedges]) => {
+
+      const src = isCore ? fullCoreDB : fullOuterDB;
+      Object.entries(src).forEach(([cat, wedges]) => {
         if (!wedges.length) return;
         const grp = document.createElement("optgroup"); grp.label = cat;
         wedges.forEach(w => {
-          const o = document.createElement("option"); o.value = w.id;
-          o.textContent = (w.grade === "gold" ? "🥇 " : "💜 ") + w.name;
-          o.className = w.grade === "gold" ? "grade-gold" : "grade-purple";
+          const o = document.createElement("option");
+          o.value = w.id;
+          const gradeIcon  = { gold:"🥇 ", purple:"💜 ", blue:"🔵 ", green:"🟢 ", gray:"⬜ " };
+          const gradeClass = { gold:"grade-gold", purple:"grade-purple", blue:"grade-blue", green:"grade-green", gray:"grade-gray" };
+          o.textContent = (gradeIcon[w.grade] || "⬜ ") + w.name;
+          o.className = gradeClass[w.grade] || "";
+          o.dataset.series = w.series;
+          o.dataset.elem   = w.elem;
+          o.dataset.grade  = w.grade;
           grp.appendChild(o);
         });
         sel.appendChild(grp);
       });
+
+      // 이전 선택값 복원
       const exists = [...sel.options].some(o => o.value === prev);
       sel.value = exists ? prev : "none";
+    }
+
+    function applyFilter(sel, sf, ef, gf) {
+      [...sel.options].forEach(o => {
+        if (o.value === "none") { o.hidden = false; return; }
+        const ms = sf === "all" || o.dataset.series === sf;
+        const me = ef === "all" || o.dataset.elem === ef || o.dataset.elem === "공용";
+        const mg = gf === "all" || o.dataset.grade === gf;
+        o.hidden = !(ms && me && mg);
+      });
+      // optgroup에는 .options가 없으므로 .children 사용
+      [...sel.querySelectorAll("optgroup")].forEach(grp => {
+        const anyVisible = [...grp.children].some(o => !o.hidden);
+        grp.hidden = !anyVisible;
+      });
     }
 
     function getFilteredDB(isCore, seriesFilter, elemFilter, gradeFilter) {
@@ -685,25 +896,18 @@
       const ef = document.getElementById(`${prefix}-wf-elem`).value;
       const gf = document.getElementById(`${prefix}-wf-grade`).value;
 
-      const outerDB = getFilteredDB(false, sf, ef, gf);
-      const coreDB  = getFilteredDB(true,  sf, ef, gf);
-
       const sec = SECTIONS.find(s => s.prefix === prefix);
-      const outerIds = [];
-      for (let i = 1; i <= sec.outerCount; i++) outerIds.push(`${prefix}-slot${i}`);
-      outerIds.forEach(id => {
-        const sel = document.getElementById(id);
-        if (sel) rebuildSlotSelect(sel, outerDB);
-      });
+
+      for (let i = 1; i <= sec.outerCount; i++) {
+        const sel = document.getElementById(`${prefix}-slot${i}`);
+        if (sel) applyFilter(sel, sf, ef, gf);
+      }
       if (sec.hasCore) {
         const coreSel = document.getElementById(`${prefix}-slot-core`);
-        if (sf === "all" || sf === "쿠쿨칸") rebuildSlotSelect(coreSel, coreDB);
-        else {
-          coreSel.innerHTML = ""; const o = document.createElement("option"); o.value="none"; o.textContent="❌ 장착 해제"; coreSel.appendChild(o);
-        }
+        if (coreSel) applyFilter(coreSel, sf, ef, gf);
       }
 
-      // 카운트
+      // 카운트 (필터 기준)
       const total = [...flatOuterList, ...flatCoreList].filter(w => {
         const ms = sf === "all" || w.series === sf;
         const me = ef === "all" || w.elem === ef || w.elem === "공용";
@@ -739,69 +943,211 @@
     // ═══════════════════════════════════════════════════════
     // 메인 계산
     // ═══════════════════════════════════════════════════════
-    function calculateAll() {
-      const charBase  = Number(document.getElementById("char-base-atk").value)    || 0;
-      const charHp    = Number(document.getElementById("char-base-hp").value)     || 0;
-      const charShd   = Number(document.getElementById("char-base-shield").value) || 0;
-      const charDef   = Number(document.getElementById("char-base-def").value)    || 0;
-      const charSp    = Number(document.getElementById("char-base-sp").value)     || 100;
-      const charSr    = Number(document.getElementById("char-base-sr").value)     || 100;
-      const charSd    = Number(document.getElementById("char-base-sd").value)     || 100;
-      const charEx    = Number(document.getElementById("char-base-ex").value)     || 0;
-      const charDs    = Number(document.getElementById("char-base-ds").value)     || 0;
-      const meleeBase = Number(document.getElementById("melee-base-atk").value)   || 0;
-      const rangedBase= Number(document.getElementById("ranged-base-atk").value)  || 0;
-      const skillMult = Number(document.getElementById("skill-multiplier").value) || 0;
+    // ═══════════════════════════════════════════════════════
+    // 메인 계산 (위키 공식 전면 적용)
+    // ═══════════════════════════════════════════════════════
+    function calcCritCoeff(critRate, critDmg) {
+      // 크리티컬 레벨 결정
+      let critLv = 1;
+      if (critRate >= 300) critLv = 3;
+      else if (critRate >= 200) critLv = 2;
 
+      if (critRate <= 0) return 1.0; // 미발동
+
+      // 크리티컬 확률이 100% 미만이면 기댓값으로 처리
+      // 확률 100% 이상이면 무조건 발동
+      const prob = Math.min(critRate / 100, 1.0);
+      const critMult = 1 + critLv * (critDmg / 100 - 1);
+      // 기대 크리티컬 계수 = prob × critMult + (1-prob) × 1
+      return prob * critMult + (1 - prob) * 1;
+    }
+
+    function calcDsCoeff(dsPct, hpPct) {
+      // 필사 값 계수 = ds × 2 × ((100-hp)×2 + 100) × (100-hp)  (모두 소수)
+      const hp = hpPct / 100;
+      const dsValCoeff = (dsPct / 100) * 2 * ((1 - hp) * 2 + 1) * (1 - hp);
+      return 1 + dsValCoeff; // 필사 계수
+    }
+
+    function calcExCoeff(exPct, hpPct) {
+      // 격양 값 계수 = ex × hp
+      const exValCoeff = (exPct / 100) * (hpPct / 100);
+      return 1 + exValCoeff; // 격양 계수
+    }
+
+    function calcDefCoeff(enemyDef, defIgnorePct, levelDiff) {
+      // 레벨 차이 계수: -20 ~ 0
+      const ld = Math.max(-20, Math.min(0, levelDiff));
+      const num = 300 + ld;
+      const denom = 300 + ld + enemyDef * (1 - defIgnorePct / 100);
+      return denom > 0 ? num / denom : 1;
+    }
+
+    function calcElemCoeff(enemyResPct, elemPenPct) {
+      return (1 - enemyResPct / 100) * (1 + elemPenPct / 100);
+    }
+
+    function calcRcvCoeff(reduceStr, increaseVal) {
+      // 감소: 쉼표 구분 각각 곱연산
+      let coeff = 1.0;
+      if (reduceStr && reduceStr.trim()) {
+        reduceStr.split(",").forEach(v => {
+          const n = parseFloat(v.trim());
+          if (!isNaN(n)) coeff *= (1 - n / 100);
+        });
+      }
+      coeff *= (1 + increaseVal / 100);
+      return coeff;
+    }
+
+    function pct(n) { return (n >= 0 ? "+" : "") + n.toFixed(1) + "%"; }
+    function mul(n) { return "×" + (n * 100).toFixed(1) + "%"; }
+    function num(n) { return Math.round(n).toLocaleString(); }
+
+    function calculateAll() {
+      // ── 캐릭터 기본 스탯 ──
+      const charBaseAtk = Number(document.getElementById("char-base-atk").value)    || 0;
+      const charBaseHp  = Number(document.getElementById("char-base-hp").value)     || 0;
+      const charBaseShd = Number(document.getElementById("char-base-shield").value) || 0;
+      const charBaseDef = Number(document.getElementById("char-base-def").value)    || 0;
+      const charBaseSp  = Number(document.getElementById("char-base-sp").value)     || 100;
+      const charBaseSr  = Number(document.getElementById("char-base-sr").value)     || 100;
+      const charBaseSd  = Number(document.getElementById("char-base-sd").value)     || 100;
+      const charEx      = Number(document.getElementById("char-base-ex").value)     || 0;
+      const charDs      = Number(document.getElementById("char-base-ds").value)     || 0;
+      const meleeBaseAtk= Number(document.getElementById("melee-base-atk").value)  || 0;
+      const rangedBaseAtk=Number(document.getElementById("ranged-base-atk").value) || 0;
+
+      // ── 대미지 계산 설정 ──
+      const skillMult    = Number(document.getElementById("skill-multiplier").value)  || 0;
+      const skillDmgBonus= Number(document.getElementById("skill-dmg-bonus").value)  || 0;
+      const dealDmgBonus = Number(document.getElementById("deal-dmg-bonus").value)   || 0;
+
+      const meleeWpnMult = Number(document.getElementById("melee-wpn-mult").value)  || 100;
+      const meleeDmgBonus= Number(document.getElementById("melee-dmg-bonus").value) || 0;
+      const meleeMastery = Number(document.getElementById("melee-mastery").value)    || 120;
+      const meleeCritRate= Number(document.getElementById("melee-crit-rate").value) || 0;
+      const meleeCritDmg = Number(document.getElementById("melee-crit-dmg").value)  || 150;
+
+      const rangedWpnMult = Number(document.getElementById("ranged-wpn-mult").value)  || 100;
+      const rangedDmgBonus= Number(document.getElementById("ranged-dmg-bonus").value) || 0;
+      const rangedMastery = Number(document.getElementById("ranged-mastery").value)   || 120;
+      const rangedCritRate= Number(document.getElementById("ranged-crit-rate").value) || 0;
+      const rangedCritDmg = Number(document.getElementById("ranged-crit-dmg").value)  || 150;
+
+      // ── 적 설정 (고정값: 방어 계수 1, 속성 저항 계수 1, 받는 대미지 계수 1) ──
+      const enemyDef      = 0;
+      const defIgnore     = 0;
+      const levelDiff     = 0;
+      const enemyElemRes  = 0;
+      const elemPen       = 0;
+      const curHpPct      = 100;
+      const enemyReduceStr= "";
+      const enemyIncrease = 0;
+
+      // ── 쐐기 합산 ──
       const cw = sumWedges("char",   8, true);
       const mw = sumWedges("melee",  8, true);
       const rw = sumWedges("ranged", 8, true);
 
-      // 캐릭터 쐐기만 캐릭터 스탯에 적용
-      const charFinalAtk = charBase * (1 + cw.atk / 100);
-      const charFinalHp  = charHp  * (1 + cw.hp  / 100);
-      const charFinalShd = charShd * (1 + cw.hp  / 100);
-      const charFinalDef = charDef * (1 + cw.def / 100);
-      const charFinalSp  = charSp  + cw.sk_pwr;
-      const charFinalSd  = charSd  + cw.sk_dur;
+      // ── 캐릭터 최종 스탯 (캐릭 쐐기만 적용) ──
+      // 공식: 캐릭터 기본 공격 × (100% + 공격%) × (100% + 속성공격%) → 쐐기 atk%는 공격%에 합산
+      const charFinalAtk = charBaseAtk * (1 + cw.atk / 100);
+      const charFinalHp  = charBaseHp  * (1 + cw.hp  / 100);
+      const charFinalShd = charBaseShd * (1 + cw.hp  / 100);
+      const charFinalDef = charBaseDef * (1 + cw.def / 100);
+      const charFinalSp  = charBaseSp  + cw.sk_pwr;
+      const charFinalSd  = charBaseSd  + cw.sk_dur;
 
-      // 근접: (캐릭 기본공 + 무기깡공) × (1 + 근접쐐기 ATK%)
-      const meleeTotalBase  = charBase + meleeBase;
-      const meleeFinalAtk   = meleeTotalBase * (1 + mw.atk / 100);
-      const meleeSkMult     = (skillMult / 100) * ((charFinalSp / 100) + mw.sk_pwr / 100);
-      const meleeDmg        = meleeFinalAtk * meleeSkMult;
+      // ── 공통 계수 ──
+      const defCoeff  = calcDefCoeff(enemyDef, defIgnore, levelDiff);
+      const elemCoeff = calcElemCoeff(enemyElemRes, elemPen);
+      const rcvCoeff  = calcRcvCoeff(enemyReduceStr, enemyIncrease);
+      const dsCoeff   = calcDsCoeff(charDs, curHpPct);
+      const exCoeff   = calcExCoeff(charEx, curHpPct);
 
-      // 원거리: 마찬가지
-      const rangedTotalBase = charBase + rangedBase;
-      const rangedFinalAtk  = rangedTotalBase * (1 + rw.atk / 100);
-      const rangedSkMult    = (skillMult / 100) * ((charFinalSp / 100) + rw.sk_pwr / 100);
-      const rangedDmg       = rangedFinalAtk * rangedSkMult;
+      // ── 최종 스킬 대미지 ──
+      // 기본 스킬 대미지 = 캐릭터 최종 공격 × (스킬배율/100) × (1 + 스킬위력/100)
+      const skPwrFinal = charFinalSp / 100; // 예: 120% → 1.2
+      const skBase     = charFinalAtk * (skillMult / 100) * (1 + skPwrFinal - 1);
+      //   실제 공식: 스탯 × 배율(%) × (100% + 스킬위력(%)) → 배율은 /100, 위력은 (charFinalSp/100)
+      const skBaseFixed = charFinalAtk * (skillMult / 100) * (charFinalSp / 100);
 
-      // 출력
-      document.getElementById("cw-atk").textContent  = `+${cw.atk}%`;
-      document.getElementById("cw-sk").textContent   = `+${cw.sk_pwr}%`;
-      document.getElementById("cw-dur").textContent  = `+${cw.sk_dur}%`;
-      document.getElementById("cw-surv").textContent = `+${cw.hp}% / +${cw.def}%`;
+      // 스킬 대미지 증감 계수 = 100% + 입히는 대미지 증가 + 스킬 대미지 증가
+      const skDmgCoeff = 1 + (dealDmgBonus + skillDmgBonus) / 100;
 
-      document.getElementById("c-pure-base").textContent    = charBase.toLocaleString();
-      document.getElementById("c-final-total").textContent  = Math.round(charFinalAtk).toLocaleString();
-      document.getElementById("c-final-surv").textContent   = `${Math.round(charFinalHp).toLocaleString()} / ${Math.round(charFinalShd).toLocaleString()} / ${Math.round(charFinalDef).toLocaleString()}`;
-      document.getElementById("c-final-sk-stats").textContent = `${charFinalSp}% / ${charSr}% / ${charFinalSd}%`;
+      // 최종 = 기본 × 방어 × 속저 × 필사 × 격양 × 스킬증감 × 적받는
+      const skFinal = skBaseFixed * defCoeff * elemCoeff * dsCoeff * exCoeff * skDmgCoeff * rcvCoeff;
+
+      // ── 최종 근접 무기 대미지 ──
+      // 기본 무기 대미지 = 배율 × [(캐릭공격 + 무기깡공 × 마스터리)]
+      // 공식: 무기공격대미지계수 × [캐릭터공 + 무기기본공 × 마스터리]
+      // 쐐기 atk%는 각자 적용
+      const charAtkForMelee  = charBaseAtk * (1 + cw.atk / 100); // 캐릭쐐기 적용된 캐릭공
+      const meleeWpnAtk      = meleeBaseAtk * (meleeMastery / 100);
+      const meleeTotalAtk    = charAtkForMelee + meleeWpnAtk;
+      const meleeWithWedge   = meleeTotalAtk * (1 + mw.atk / 100);
+      const meleeWpnBase     = (meleeWpnMult / 100) * meleeWithWedge;
+
+      // 크리티컬 계수 (기댓값)
+      const meleeCritCoeff   = calcCritCoeff(meleeCritRate, meleeCritDmg);
+      // 무기 대미지 증감 계수 = 100% + 입히는 증가 + 무기 대미지 증가 (캐릭 쐐기 sk_pwr은 무기에 미적용)
+      const meleeDmgCoeff    = 1 + (dealDmgBonus + meleeDmgBonus) / 100;
+
+      const meleeFinal = meleeWpnBase * meleeCritCoeff * defCoeff * elemCoeff * dsCoeff * exCoeff * meleeDmgCoeff * rcvCoeff;
+
+      // ── 최종 원거리 무기 대미지 ──
+      const charAtkForRanged = charBaseAtk * (1 + cw.atk / 100);
+      const rangedWpnAtk     = rangedBaseAtk * (rangedMastery / 100);
+      const rangedTotalAtk   = charAtkForRanged + rangedWpnAtk;
+      const rangedWithWedge  = rangedTotalAtk * (1 + rw.atk / 100);
+      const rangedWpnBase    = (rangedWpnMult / 100) * rangedWithWedge;
+
+      const rangedCritCoeff  = calcCritCoeff(rangedCritRate, rangedCritDmg);
+      const rangedDmgCoeff   = 1 + (dealDmgBonus + rangedDmgBonus) / 100;
+
+      const rangedFinal = rangedWpnBase * rangedCritCoeff * defCoeff * elemCoeff * dsCoeff * exCoeff * rangedDmgCoeff * rcvCoeff;
+
+      // ── 출력 ──
+      // 캐릭터 스탯
+      document.getElementById("c-pure-base").textContent    = num(charBaseAtk);
+      document.getElementById("c-final-total").textContent  = num(charFinalAtk);
+      document.getElementById("c-final-surv").textContent   = `${num(charFinalHp)} / ${num(charFinalShd)} / ${num(charFinalDef)}`;
+      document.getElementById("c-final-sk-stats").textContent = `${charFinalSp.toFixed(1)}% / ${charBaseSr}% / ${charFinalSd.toFixed(1)}%`;
       document.getElementById("c-final-buff-stats").textContent = `${charEx}% / ${charDs}%`;
+      document.getElementById("c-ds-coeff").textContent     = mul(dsCoeff);
+      document.getElementById("c-ex-coeff").textContent     = mul(exCoeff);
 
-      document.getElementById("mw-atk").textContent = `+${mw.atk}%`;
-      document.getElementById("mw-sk").textContent  = `+${mw.sk_pwr}%`;
-      document.getElementById("mw-dur").textContent = `+${mw.sk_dur}%`;
-      document.getElementById("m-total-base").textContent  = meleeTotalBase.toLocaleString();
-      document.getElementById("m-final-atk").textContent   = Math.round(meleeFinalAtk).toLocaleString();
-      document.getElementById("m-expected-dmg").textContent= Math.round(meleeDmg).toLocaleString();
+      // 공통 계수 (출력 생략 - 적 설정 제거됨)
 
-      document.getElementById("rw-atk").textContent = `+${rw.atk}%`;
-      document.getElementById("rw-sk").textContent  = `+${rw.sk_pwr}%`;
-      document.getElementById("rw-dur").textContent = `+${rw.sk_dur}%`;
-      document.getElementById("r-total-base").textContent  = rangedTotalBase.toLocaleString();
-      document.getElementById("r-final-atk").textContent   = Math.round(rangedFinalAtk).toLocaleString();
-      document.getElementById("r-expected-dmg").textContent= Math.round(rangedDmg).toLocaleString();
+      // 스킬 대미지
+      document.getElementById("sk-base").textContent      = num(skBaseFixed);
+      document.getElementById("sk-dmg-coeff").textContent = mul(skDmgCoeff);
+      document.getElementById("sk-dmg-min").textContent   = num(skFinal * 0.95);
+      document.getElementById("sk-dmg-avg").textContent   = num(skFinal);
+      document.getElementById("sk-dmg-max").textContent   = num(skFinal * 1.05);
+
+      // 근접
+      document.getElementById("mw-atk").textContent    = pct(mw.atk);
+      document.getElementById("mw-sk").textContent     = pct(mw.sk_pwr);
+      document.getElementById("m-total-base").textContent = num(meleeTotalAtk);
+      document.getElementById("m-wpn-base").textContent   = num(meleeWpnBase);
+      document.getElementById("m-crit-coeff").textContent = mul(meleeCritCoeff);
+      document.getElementById("m-wdmg-coeff").textContent = mul(meleeDmgCoeff);
+      document.getElementById("m-dmg-min").textContent    = num(meleeFinal * 0.95);
+      document.getElementById("m-dmg-avg").textContent    = num(meleeFinal);
+      document.getElementById("m-dmg-max").textContent    = num(meleeFinal * 1.05);
+
+      // 원거리
+      document.getElementById("rw-atk").textContent    = pct(rw.atk);
+      document.getElementById("rw-sk").textContent     = pct(rw.sk_pwr);
+      document.getElementById("r-total-base").textContent = num(rangedTotalAtk);
+      document.getElementById("r-wpn-base").textContent   = num(rangedWpnBase);
+      document.getElementById("r-crit-coeff").textContent = mul(rangedCritCoeff);
+      document.getElementById("r-wdmg-coeff").textContent = mul(rangedDmgCoeff);
+      document.getElementById("r-dmg-min").textContent    = num(rangedFinal * 0.95);
+      document.getElementById("r-dmg-avg").textContent    = num(rangedFinal);
+      document.getElementById("r-dmg-max").textContent    = num(rangedFinal * 1.05);
     }
 
     // ═══════════════════════════════════════════════════════
@@ -838,17 +1184,18 @@
         document.getElementById("info-position").innerText = "-";
         document.getElementById("info-mastery").innerText  = "-";
         document.getElementById("lbl-char-base-atk").innerText = "속성 기본 공격력";
+        // 캐릭터 없으면 속성 필터 전체로 초기화
+        ["char","melee","ranged"].forEach(prefix => {
+          document.getElementById(`${prefix}-wf-elem`).value = "all";
+          document.getElementById(`${prefix}-wf-elem`).disabled = false;
+          onWedgeFilterChange(prefix);
+        });
         return;
       }
       document.getElementById("info-position").innerText = c.position;
       document.getElementById("info-mastery").innerText  = c.mastery;
       document.getElementById("lbl-char-base-atk").innerText = `${c.element} 속성 기본 공격력`;
       const s = selectedLevel===1 ? c.lv1 : c.lv80;
-      ["atk","hp","shd","def","mental","sp","sr","sd","ex","ds"].forEach(k => {
-        const el = document.getElementById(`char-base-${k}`);
-        if (el) el.value = s[k] ?? s[k.replace("mental","mt")] ?? s[k.replace("atk","atk")] ?? 0;
-      });
-      // manual map
       document.getElementById("char-base-atk").value    = s.atk;
       document.getElementById("char-base-hp").value     = s.hp;
       document.getElementById("char-base-shield").value = s.shd;
@@ -859,6 +1206,15 @@
       document.getElementById("char-base-sd").value     = s.sd;
       document.getElementById("char-base-ex").value     = s.ex;
       document.getElementById("char-base-ds").value     = s.ds;
+
+      // 캐릭터 속성에 맞춰 모든 쐐기 섹션 속성 필터 고정
+      ["char","melee","ranged"].forEach(prefix => {
+        const elemSel = document.getElementById(`${prefix}-wf-elem`);
+        elemSel.value = c.element;
+        elemSel.disabled = true; // 직접 변경 못하게 잠금
+        onWedgeFilterChange(prefix);
+      });
+
       calculateAll();
     }
 
@@ -891,17 +1247,28 @@
     // 초기화
     // ═══════════════════════════════════════════════════════
     window.onload = function() {
-      // 각 섹션 DOM + 필터 구성
-      SECTIONS.forEach(({ prefix, labelClass, matrixId, outerCount, hasCore }) => {
-        buildWedgeMatrix(prefix, labelClass, matrixId, outerCount, hasCore);
-        buildFilterDropdowns(prefix);
-        onWedgeFilterChange(prefix);
-      });
-
+      // 캐릭터·무기 목록 먼저 초기화 (calculateAll이 이것들에 의존)
       updateCharacterList();
       updateMeleeWeaponList();
       updateRangedWeaponList();
       onCharacterSelectChange();
+
+      // 쐐기 섹션 DOM 구성 → 전체 옵션 로드 → 필터 적용
+      SECTIONS.forEach(({ prefix, labelClass, matrixId, outerCount, hasCore }) => {
+        buildWedgeMatrix(prefix, labelClass, matrixId, outerCount, hasCore);
+        buildFilterDropdowns(prefix);
+
+        for (let i = 1; i <= outerCount; i++) {
+          const sel = document.getElementById(`${prefix}-slot${i}`);
+          if (sel) rebuildSlotSelect(sel, outerWedgeDatabase, coreWedgeDatabase, false);
+        }
+        if (hasCore) {
+          const coreSel = document.getElementById(`${prefix}-slot-core`);
+          if (coreSel) rebuildSlotSelect(coreSel, outerWedgeDatabase, coreWedgeDatabase, true);
+        }
+
+        onWedgeFilterChange(prefix);
+      });
     };
     </script>
   </body>
