@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>듀나어 종합 세팅 계산기</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #121214;
+        color: #e1e1e6;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      h1 { color: #8257e5; margin-bottom: 5px; }
+      .sub-title { color: #7c7c8a; margin-bottom: 25px; font-size: 14px; }
+
+      .container {
+        display: flex;
+        gap: 20px;
+        width: 100%;
+        max-width: 1500px;
+      }
+      .box {
+        background: #202024;
+        padding: 25px;
+        border-radius: 8px;
+        flex: 1.3;
+        border: 1px solid #323238;
+      }
+      .box.result-box {
+        flex: 0.75;
+        background: #19191c;
+      }
+      h2 {
+        color: #fff;
+        font-size: 17px;
+        border-bottom: 2px solid #8257e5;
+        padding-bottom: 8px;
+        margin-top: 0;
+        margin-bottom: 15px;
+      }
+      h3 {
+        color: #e1e1e6;
+        font-size: 14px;
+        margin: 0 0 10px 0;
+        padding: 6px 10px;
+        border-radius: 4px;
+      }
+      h3.char-h3  { background: rgba(130,87,229,0.15); border-left: 3px solid #8257e5; }
+      h3.melee-h3 { background: rgba(255,71,87,0.12);  border-left: 3px solid #ff4757; }
+      h3.ranged-h3{ background: rgba(46,213,115,0.12); border-left: 3px solid #2ed573; }
+
+      .input-row { display: flex; gap: 10px; margin-bottom: 12px; }
+      .input-group { flex: 1; margin-bottom: 12px; }
+      label { display: block; font-size: 13px; color: #a8a8b3; margin-bottom: 5px; }
+      input, select {
+        width: 100%; padding: 10px;
+        background: #121214; border: 1px solid #41414c;
+        color: #fff; border-radius: 4px; box-sizing: border-box; font-size: 14px;
+      }
+      input:focus, select:focus { border-color: #8257e5; outline: none; }
+
+      /* 레벨 버튼 */
+      .level-btn-group {
+        display: flex; gap: 4px; background: #121214; padding: 3px;
+        border: 1px solid #41414c; border-radius: 4px; box-sizing: border-box;
+        height: 41px; align-items: center;
+      }
+      .level-btn {
+        flex: 1; height: 100%; background: transparent; border: none;
+        color: #a8a8b3; font-size: 13px; font-weight: bold; cursor: pointer;
+        border-radius: 3px; transition: all 0.2s;
+      }
+      .level-btn.active { background: #8257e5; color: #fff; }
+
+      /* 마스터리 태그 */
+      .mastery-info-tag {
+        font-size: 13px; color: #a8a8b3; background: #1a1a1e;
+        padding: 8px 12px; border-radius: 4px; border: 1px solid #29292e;
+        margin-bottom: 15px; display: flex; gap: 15px;
+      }
+
+      /* 쐐기 섹션 공통 */
+      .wedge-section {
+        background: #1a1a1e;
+        border-radius: 8px;
+        border: 1px solid #29292e;
+        padding: 14px;
+        margin-bottom: 16px;
+      }
+
+      /* 필터 바 */
+      .wedge-filter-bar {
+        display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap;
+        margin-bottom: 10px;
+      }
+      .wedge-filter-bar .fg { flex: 1; min-width: 120px; }
+      .wedge-filter-bar label { font-size: 11px; color: #7c7c8a; margin-bottom: 3px; }
+      .wedge-filter-bar select {
+        padding: 6px 8px; font-size: 12px;
+        background: #121214; border: 1px solid #41414c; color: #fff;
+        border-radius: 4px;
+      }
+      .filter-count { font-size: 11px; color: #7c7c8a; padding-bottom: 6px; white-space: nowrap; }
+      .filter-count span { color: #8257e5; font-weight: bold; }
+
+      /* 쐐기 매트릭스 */
+      .wedge-matrix {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .wedge-slot {
+        background: #202024; padding: 7px;
+        border-radius: 6px; border: 1px solid #323238;
+      }
+      .wedge-slot.core-slot {
+        border: 2px dashed #f39c12;
+        background: rgba(243,156,18,0.05);
+      }
+      .wedge-slot > .slot-label {
+        font-size: 10px; font-weight: bold; display: block; margin-bottom: 3px;
+      }
+      .wedge-slot .slot-label.char-label  { color: #8257e5; }
+      .wedge-slot .slot-label.melee-label { color: #ff4757; }
+      .wedge-slot .slot-label.ranged-label{ color: #2ed573; }
+      .wedge-slot.core-slot .slot-label   { color: #f39c12; }
+      .wedge-slot select { font-size: 11px; padding: 5px; }
+
+      /* 금/보라 쐐기 색상 */
+      option.grade-gold   { color: #f39c12; }
+      option.grade-purple { color: #a855f7; }
+
+      /* 결과 카드 */
+      .result-card {
+        background: #29292e; padding: 15px;
+        border-radius: 6px; margin-bottom: 15px;
+        border-left: 4px solid #8257e5;
+      }
+      .result-card.char-total  { border-left-color: #3498db; }
+      .result-card.melee       { border-left-color: #ff4757; }
+      .result-card.ranged      { border-left-color: #2ed573; }
+      .result-card.summary     { border-left-color: #f39c12; }
+      .result-row {
+        display: flex; justify-content: space-between;
+        margin-bottom: 6px; font-size: 13px;
+      }
+      .result-row:last-child { margin-bottom: 0; }
+      .val { font-weight: bold; color: #fff; }
+      .important-val { font-size: 16px; font-weight: bold; }
+
+      .wedge-totals-mini {
+        font-size: 11px; color: #7c7c8a;
+        display: flex; gap: 8px; flex-wrap: wrap;
+        margin-bottom: 8px; padding: 6px 10px;
+        background: #121214; border-radius: 4px;
+      }
+      .wedge-totals-mini span { color: #f39c12; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <h1>🌌 듀엣 나이트 어비스 종합 세팅 계산기</h1>
+    <div class="sub-title">캐릭터 정보 및 위키 공식 악마의 쐐기 데이터를 실시간 연산합니다.</div>
+
+    <div class="container">
+      <!-- ═══════════════ 왼쪽 입력 박스 ═══════════════ -->
+      <div class="box">
+
+        <!-- 캐릭터 설정 -->
+        <h2>👤 캐릭터 설정</h2>
+        <div class="input-row">
+          <div class="input-group" style="flex:0.8">
+            <label>1. 속성 선택</label>
+            <select id="char-elem-select" onchange="onCharFilterChange()">
+              <option value="all">🔄 전체 속성</option>
+              <option value="물">💧 물</option>
+              <option value="불">🔥 불</option>
+              <option value="바람">🌪️ 바람</option>
+              <option value="번개">⚡ 번개</option>
+              <option value="빛">✨ 빛</option>
+              <option value="어둠">🌑 어둠</option>
+            </select>
+          </div>
+          <div class="input-group" style="flex:0.8">
+            <label>2. 포지션 선택</label>
+            <select id="char-pos-select" onchange="onCharFilterChange()">
+              <option value="all">🔄 전체 포지션</option>
+              <option value="딜러">⚔️ 딜러</option>
+              <option value="서포터">🛡️ 서포터</option>
+            </select>
+          </div>
+          <div class="input-group" style="flex:1.4">
+            <label>3. 세부 캐릭터 선택</label>
+            <select id="char-select" onchange="onCharacterSelectChange()"></select>
+          </div>
+          <div class="input-group" style="flex:0.8">
+            <label>4. 레벨 선택</label>
+            <div class="level-btn-group">
+              <button id="btn-lv1" class="level-btn active" onclick="changeLevel(1)">1 Lv</button>
+              <button id="btn-lv80" class="level-btn" onclick="changeLevel(80)">80 Lv</button>
+            </div>
+          </div>
+        </div>
+        <div class="mastery-info-tag">
+          <div>포지션: <span id="info-position" style="font-weight:bold;color:#fff">-</span></div>
+          <div>전용 무기 마스터리: <span id="info-mastery" style="font-weight:bold;color:#8257e5">-</span></div>
+        </div>
+        <div class="input-row">
+          <div class="input-group"><label id="lbl-char-base-atk">속성 기본 공격력</label><input type="number" id="char-base-atk" value="0" oninput="calculateAll()"/></div>
+          <div class="input-group"><label>기본 HP</label><input type="number" id="char-base-hp" value="0" oninput="calculateAll()"/></div>
+          <div class="input-group"><label>기본 실드</label><input type="number" id="char-base-shield" value="0" oninput="calculateAll()"/></div>
+          <div class="input-group"><label>기본 방어력</label><input type="number" id="char-base-def" value="0" oninput="calculateAll()"/></div>
+          <div class="input-group"><label>최대 정신력</label><input type="number" id="char-base-mental" value="0" oninput="calculateAll()"/></div>
+        </div>
+        <div class="input-row">
+          <div class="input-group"><label>스킬 위력 (%)</label><input type="number" id="char-base-sp" value="100" oninput="calculateAll()"/></div>
+          <div class="input-group"><label>스킬 범위 (%)</label><input type="number" id="char-base-sr" value="100" oninput="calculateAll()"/></div>
+          <div class="input-group"><label>스킬 지속 (%)</label><input type="number" id="char-base-sd" value="100" oninput="calculateAll()"/></div>
+          <div class="input-group"><label>격양 (%)</label><input type="number" id="char-base-ex" value="0" oninput="calculateAll()"/></div>
+          <div class="input-group"><label>필사 (%)</label><input type="number" id="char-base-ds" value="0" oninput="calculateAll()"/></div>
+        </div>
+
+        <!-- ── 캐릭터 쐐기 섹션 ── -->
+        <h3 class="char-h3">🔮 캐릭터 악마의 쐐기 (캐릭터 스탯에만 적용)</h3>
+        <div class="wedge-section" id="char-wedge-section">
+          <div class="wedge-filter-bar">
+            <div class="fg"><label>시리즈</label><select id="char-wf-series" onchange="onWedgeFilterChange('char')"></select></div>
+            <div class="fg"><label>속성</label><select id="char-wf-elem" onchange="onWedgeFilterChange('char')"></select></div>
+            <div class="fg"><label>등급</label><select id="char-wf-grade" onchange="onWedgeFilterChange('char')">
+              <option value="all">전체</option>
+              <option value="gold">🥇 금색</option>
+              <option value="purple">💜 보라색</option>
+            </select></div>
+            <div class="filter-count"><span id="char-wf-count">-</span>개</div>
+          </div>
+          <div class="wedge-matrix" id="char-wedge-matrix"></div>
+        </div>
+
+        <!-- 근접 무기 -->
+        <h2>⚔️ 근접 무기 설정 (Melee)</h2>
+        <div class="input-row">
+          <div class="input-group" style="flex:0.8">
+            <label>무기 종류</label>
+            <select id="melee-type-select" onchange="onMeleeTypeChange()">
+              <option value="all">🔄 전체</option>
+              <option value="onehand">🗡️ 한손검</option>
+              <option value="polearm">🔱 장병기</option>
+              <option value="greatsword">🪓 대검</option>
+              <option value="twin">⚔️ 쌍도</option>
+              <option value="whip">⛓️ 칼날 채찍</option>
+              <option value="katana">🏮 대도</option>
+            </select>
+          </div>
+          <div class="input-group" style="flex:1.2">
+            <label>세부 무기</label>
+            <select id="melee-weapon-select" onchange="calculateAll()"></select>
+          </div>
+          <div class="input-group" style="max-width:120px">
+            <label>무기 깡공</label>
+            <input type="number" id="melee-base-atk" value="350" oninput="calculateAll()"/>
+          </div>
+        </div>
+        <!-- 근접 쐐기 섹션 -->
+        <h3 class="melee-h3">⚔️ 근접 무기 악마의 쐐기 (근접 무기 스탯에만 적용)</h3>
+        <div class="wedge-section" id="melee-wedge-section">
+          <div class="wedge-filter-bar">
+            <div class="fg"><label>시리즈</label><select id="melee-wf-series" onchange="onWedgeFilterChange('melee')"></select></div>
+            <div class="fg"><label>속성</label><select id="melee-wf-elem" onchange="onWedgeFilterChange('melee')"></select></div>
+            <div class="fg"><label>등급</label><select id="melee-wf-grade" onchange="onWedgeFilterChange('melee')">
+              <option value="all">전체</option>
+              <option value="gold">🥇 금색</option>
+              <option value="purple">💜 보라색</option>
+            </select></div>
+            <div class="filter-count"><span id="melee-wf-count">-</span>개</div>
+          </div>
+          <div class="wedge-matrix" id="melee-wedge-matrix"></div>
+        </div>
+
+        <!-- 원거리 무기 -->
+        <h2>🏹 원거리 무기 설정 (Ranged)</h2>
+        <div class="input-row">
+          <div class="input-group" style="flex:0.8">
+            <label>무기 종류</label>
+            <select id="ranged-type-select" onchange="onRangedTypeChange()">
+              <option value="all">🔄 전체</option>
+              <option value="pistol">🔫 권총</option>
+              <option value="dual_pistol">♊ 쌍권총</option>
+              <option value="cannon">💣 핸드 캐논</option>
+              <option value="shotgun">💥 산탄총</option>
+              <option value="rifle">🎖️ 돌격 소총</option>
+              <option value="bow">🏹 활</option>
+            </select>
+          </div>
+          <div class="input-group" style="flex:1.2">
+            <label>세부 무기</label>
+            <select id="ranged-weapon-select" onchange="calculateAll()"></select>
+          </div>
+          <div class="input-group" style="max-width:120px">
+            <label>무기 깡공</label>
+            <input type="number" id="ranged-base-atk" value="280" oninput="calculateAll()"/>
+          </div>
+        </div>
+        <!-- 원거리 쐐기 섹션 -->
+        <h3 class="ranged-h3">🏹 원거리 무기 악마의 쐐기 (원거리 무기 스탯에만 적용)</h3>
+        <div class="wedge-section" id="ranged-wedge-section">
+          <div class="wedge-filter-bar">
+            <div class="fg"><label>시리즈</label><select id="ranged-wf-series" onchange="onWedgeFilterChange('ranged')"></select></div>
+            <div class="fg"><label>속성</label><select id="ranged-wf-elem" onchange="onWedgeFilterChange('ranged')"></select></div>
+            <div class="fg"><label>등급</label><select id="ranged-wf-grade" onchange="onWedgeFilterChange('ranged')">
+              <option value="all">전체</option>
+              <option value="gold">🥇 금색</option>
+              <option value="purple">💜 보라색</option>
+            </select></div>
+            <div class="filter-count"><span id="ranged-wf-count">-</span>개</div>
+          </div>
+          <div class="wedge-matrix" id="ranged-wedge-matrix"></div>
+        </div>
+
+        <div class="input-group">
+          <label>가상 스킬 배율 (%)</label>
+          <input type="number" id="skill-multiplier" value="250" oninput="calculateAll()"/>
+        </div>
+      </div>
+
+      <!-- ═══════════════ 오른쪽 결과 박스 ═══════════════ -->
+      <div class="box result-box">
+        <h2>📊 실시간 종합 스탯 연산</h2>
+
+        <!-- 캐릭터 쐐기 합산 -->
+        <div class="result-card summary">
+          <div style="font-weight:bold;color:#8257e5;margin-bottom:8px">🔮 캐릭터 쐐기 합산</div>
+          <div class="result-row"><span>공격력 증가</span><span class="val" id="cw-atk" style="color:#f39c12">+0%</span></div>
+          <div class="result-row"><span>스킬 위력</span><span class="val" id="cw-sk" style="color:#f39c12">+0%</span></div>
+          <div class="result-row"><span>스킬 지속</span><span class="val" id="cw-dur" style="color:#f39c12">+0%</span></div>
+          <div class="result-row"><span>HP / DEF</span><span class="val" id="cw-surv" style="color:#a8a8b3">+0% / +0%</span></div>
+        </div>
+
+        <!-- 캐릭터 최종 스탯 -->
+        <div class="result-card char-total">
+          <div style="font-weight:bold;color:#3498db;margin-bottom:8px">👤 캐릭터 최종 스탯 (무기 미포함)</div>
+          <div class="result-row"><span>순수 ATK</span><span class="val" id="c-pure-base">0</span></div>
+          <div class="result-row"><span>최종 공격력</span><span class="important-val" id="c-final-total" style="color:#3498db">0</span></div>
+          <div class="result-row" style="margin-top:4px;border-top:1px dashed #41414c;padding-top:4px">
+            <span>HP / 실드 / 방어</span><span class="val" id="c-final-surv" style="font-size:12px;color:#a8a8b3">0/0/0</span>
+          </div>
+          <div class="result-row"><span>위력 / 범위 / 지속</span><span class="val" id="c-final-sk-stats" style="font-size:12px;color:#a8a8b3">-</span></div>
+          <div class="result-row"><span>격양 / 필사</span><span class="val" id="c-final-buff-stats" style="font-size:12px;color:#a8a8b3">-</span></div>
+        </div>
+
+        <!-- 근접 -->
+        <div class="result-card melee">
+          <div style="font-weight:bold;color:#ff4757;margin-bottom:6px">⚔️ 근접 무기 쐐기 합산</div>
+          <div class="wedge-totals-mini">
+            ATK <span id="mw-atk">+0%</span> &nbsp;|&nbsp; SK위력 <span id="mw-sk">+0%</span> &nbsp;|&nbsp; SK지속 <span id="mw-dur">+0%</span>
+          </div>
+          <div class="result-row"><span>결합 깡공</span><span class="val" id="m-total-base">0</span></div>
+          <div class="result-row"><span>최종 공격력</span><span class="val" id="m-final-atk" style="color:#ff4757">0</span></div>
+          <div class="result-row" style="margin-top:6px">
+            <span>💥 예상 스킬 대미지</span>
+            <span class="important-val" id="m-expected-dmg" style="color:#ff4757">0</span>
+          </div>
+        </div>
+
+        <!-- 원거리 -->
+        <div class="result-card ranged">
+          <div style="font-weight:bold;color:#2ed573;margin-bottom:6px">🏹 원거리 무기 쐐기 합산</div>
+          <div class="wedge-totals-mini">
+            ATK <span id="rw-atk">+0%</span> &nbsp;|&nbsp; SK위력 <span id="rw-sk">+0%</span> &nbsp;|&nbsp; SK지속 <span id="rw-dur">+0%</span>
+          </div>
+          <div class="result-row"><span>결합 깡공</span><span class="val" id="r-total-base">0</span></div>
+          <div class="result-row"><span>최종 공격력</span><span class="val" id="r-final-atk" style="color:#2ed573">0</span></div>
+          <div class="result-row" style="margin-top:6px">
+            <span>💥 예상 스킬 대미지</span>
+            <span class="important-val" id="r-expected-dmg" style="color:#2ed573">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    // ═══════════════════════════════════════════════════════
+    // 캐릭터 데이터
+    // ═══════════════════════════════════════════════════════
+    const characters = [
+      { id:"gajak",    name:"✨ 각주 (빛/딜러)",          element:"빛",  position:"딜러",   mastery:"모든 유형",
+        lv1:{atk:25,hp:135,shd:135,df:315,mt:180,sp:100,sr:100,sd:118,ex:0,ds:0}, lv80:{atk:470.71,hp:1695,shd:1695,df:315,mt:180,sp:100,sr:100,sd:118,ex:0,ds:0}},
+      { id:"soeul",    name:"✨ 소을 (빛/딜러)",          element:"빛",  position:"딜러",   mastery:"장병기/산탄총",
+        lv1:{atk:29,hp:70,shd:140,df:220,mt:150,sp:100,sr:100,sd:118,ex:0,ds:0}, lv80:{atk:364.01,hp:879,shd:1757,df:220,mt:150,sp:100,sr:130,sd:118,ex:15,ds:0}},
+      { id:"mrs_knifple",name:"✨ 나이플 부인 (빛/딜러)", element:"빛",  position:"딜러",   mastery:"대도/권총",
+        lv1:{atk:21,hp:105,shd:105,df:255,mt:180,sp:100,sr:100,sd:118,ex:0,ds:0}, lv80:{atk:395.39,hp:1318,shd:1318,df:255,mt:180,sp:100,sr:130,sd:118,ex:0,ds:0}},
+      { id:"lisabel",  name:"✨ 리사벨 (빛/딜러)",        element:"빛",  position:"딜러",   mastery:"대검/산탄총",
+        lv1:{atk:24,hp:90,shd:90,df:240,mt:150,sp:100,sr:100,sd:118,ex:0,ds:0}, lv80:{atk:451.88,hp:1130,shd:1130,df:240,mt:150,sp:100,sr:130,sd:133,ex:0,ds:0}},
+      { id:"fina",     name:"✨ 피나 (빛/서포터)",        element:"빛",  position:"서포터", mastery:"한손검/돌격소총",
+        lv1:{atk:22,hp:105,shd:105,df:315,mt:160,sp:100,sr:100,sd:118,ex:0,ds:0}, lv80:{atk:276.15,hp:1318,shd:1318,df:315,mt:160,sp:100,sr:130,sd:133,ex:0,ds:0}},
+      { id:"psyche",   name:"🌪️ 프시케 (바람/딜러)",     element:"바람",position:"딜러",   mastery:"장병기/돌격소총",
+        lv1:{atk:28,hp:70,shd:140,df:252,mt:150,sp:100,sr:100,sd:118,ex:0,ds:0}, lv80:{atk:351.46,hp:879,shd:1757,df:252,mt:150,sp:120,sr:100,sd:118,ex:0,ds:5}},
+      { id:"truffle",  name:"🌪️ 트러플과 헤이즐넛 (바람/서포터)",element:"바람",position:"서포터",mastery:"장병기/활",
+        lv1:{atk:12,hp:185,shd:150,df:310,mt:120,sp:100,sr:100,sd:118,ex:0,ds:0}, lv80:{atk:150.63,hp:3483,shd:1883,df:310,mt:120,sp:100,sr:100,sd:133,ex:0,ds:0}},
+      { id:"buso",     name:"💧 부소 (물/서포터)",        element:"물",  position:"서포터", mastery:"칼날 채찍/활",
+        lv1:{atk:23,hp:105,shd:105,df:315,mt:150,sp:100,sr:100,sd:118,ex:0,ds:0}, lv80:{atk:288.7,hp:1318,shd:1318,df:315,mt:150,sp:120,sr:100,sd:133,ex:0,ds:0}},
+      { id:"rebecca",  name:"💧 레베카 (물/딜러)",        element:"물",  position:"딜러",   mastery:"장병기/핸드 캐논",
+        lv1:{atk:25,hp:100,shd:100,df:252,mt:150,sp:100,sr:100,sd:118,ex:0,ds:0}, lv80:{atk:470.71,hp:1255,shd:1255,df:252,mt:150,sp:100,sr:130,sd:118,ex:0,ds:0}},
+      { id:"tabitha",  name:"💧 타비사 (물/서포터)",      element:"물",  position:"서포터", mastery:"한손검/활",
+        lv1:{atk:17,hp:115,shd:115,df:300,mt:150,sp:100,sr:100,sd:118,ex:0,ds:0}, lv80:{atk:320,hp:1444,shd:1444,df:300,mt:150,sp:100,sr:100,sd:133,ex:0,ds:0}},
+      { id:"lyn",      name:"🔥 린 (불/딜러)",            element:"불",  position:"딜러",   mastery:"대검/쌍권총",
+        lv1:{atk:23,hp:105,shd:105,df:240,mt:150,sp:100,sr:100,sd:118,ex:0,ds:0}, lv80:{atk:433.05,hp:1318,shd:1318,df:240,mt:150,sp:100,sr:100,sd:133,ex:0,ds:0}},
+      { id:"camilla",  name:"🔥 카밀라 (불/딜러)",        element:"불",  position:"딜러",   mastery:"칼날 채찍/돌격소총",
+        lv1:{atk:25,hp:120,shd:120,df:330,mt:160,sp:100,sr:100,sd:118,ex:0,ds:0}, lv80:{atk:470.71,hp:1506,shd:1506,df:330,mt:160,sp:120,sr:100,sd:118,ex:0,ds:0}},
+      { id:"wookmyeong",name:"⚡ 욱명 (번개/딜러)",       element:"번개",position:"딜러",   mastery:"장병기/돌격소총",
+        lv1:{atk:22,hp:150,shd:50,df:300,mt:200,sp:100,sr:100,sd:118,ex:0,ds:0}, lv80:{atk:414.22,hp:1883,shd:628,df:300,mt:200,sp:120,sr:100,sd:118,ex:0,ds:0}},
+      { id:"sibylla",  name:"⚡ 시빌라 (번개/딜러)",      element:"번개",position:"딜러",   mastery:"칼날 채찍/권총",
+        lv1:{atk:13,hp:185,shd:120,df:345,mt:200,sp:100,sr:100,sd:118,ex:0,ds:0}, lv80:{atk:163.18,hp:3483,shd:1506,df:345,mt:200,sp:120,sr:100,sd:118,ex:0,ds:0}},
+      { id:"jiryu",    name:"⚡ 지류 (번개/딜러)",        element:"번개",position:"딜러",   mastery:"대검/쌍권총",
+        lv1:{atk:24,hp:80,shd:140,df:252,mt:240,sp:100,sr:100,sd:118,ex:0,ds:0}, lv80:{atk:301.25,hp:1004,shd:1757,df:252,mt:240,sp:120,sr:100,sd:118,ex:15,ds:0}},
+    ];
+
+    let selectedLevel = 1;
+
+    const meleeWeapons = [
+      { id:"none",                  type:"all",       name:"❌ 근접 무기 미장착" },
+      { id:"glowing_red_blade",     type:"onehand",   name:"🗡️ 빛나는 붉은 칼날" },
+      { id:"shackles_of_solitude",  type:"onehand",   name:"⛓️ 고독의 족쇄" },
+      { id:"remnants_of_memories",  type:"onehand",   name:"⏳ 추억의 잔영" },
+      { id:"witty_tactics",         type:"onehand",   name:"♟️ 기발한 전술" },
+      { id:"wandering_rose",        type:"onehand",   name:"🌹 방황하는 장미" },
+      { id:"sirens_kiss",           type:"polearm",   name:"🔱 세이렌의 입맞춤" },
+      { id:"spring_halberd",        type:"polearm",   name:"🌱 봄의 미늘창" },
+      { id:"hope_harvest",          type:"polearm",   name:"🌾 희망의 풍작" },
+      { id:"depravity",             type:"polearm",   name:"🪓 퇴락" },
+      { id:"hellfire_of_punishment",type:"greatsword",name:"🔥 징벌의 지옥불" },
+      { id:"iron_caster",           type:"greatsword",name:"🔨 철의 주조자" },
+      { id:"yearning",              type:"greatsword",name:"🖤 갈망" },
+      { id:"wanderers_twin_fangs",  type:"twin",      name:"⚔️ 유랑자의 쌍송곳니" },
+      { id:"golden_years",          type:"twin",      name:"🪙 금빛 세월" },
+      { id:"ghost_sharks_eye",      type:"twin",      name:"🦈 유령 상어의 눈" },
+      { id:"immutable_dream_sea",   type:"whip",      name:"🌊 불변의 꿈바다" },
+      { id:"tangled_knots",         type:"whip",      name:"🪢 뒤엉킨 매듭" },
+      { id:"deep_blue_coral",       type:"whip",      name:"🪸 검푸른 산호" },
+      { id:"a_drop_of_maple",       type:"katana",    name:"🍁 단풍 한 방울" },
+      { id:"spirit_command",        type:"katana",    name:"🦅 조령" },
+      { id:"holy_grace",            type:"katana",    name:"✨ 거룩한 은총" },
+    ];
+
+    const rangedWeapons = [
+      { id:"none",                    type:"all",         name:"❌ 원거리 무기 미장착" },
+      { id:"singularity_of_disorder", type:"pistol",      name:"🌀 무질서의 특이점" },
+      { id:"exfoliation",             type:"pistol",      name:"🍂 박리" },
+      { id:"word_of_god",             type:"pistol",      name:"📖 신의 성언" },
+      { id:"half_life",               type:"dual_pistol", name:"⏳ 반생" },
+      { id:"blue_pulse",              type:"dual_pistol", name:"⚡ 블루 펄스" },
+      { id:"holy_song",               type:"dual_pistol", name:"🎶 거룩한 노래" },
+      { id:"judgment_of_stars",       type:"cannon",      name:"✨ 별들의 심판" },
+      { id:"disintegration",          type:"cannon",      name:"💥 와해" },
+      { id:"ratchet_of_void",         type:"cannon",      name:"⚙️ 귀허의 래칫" },
+      { id:"silver_command",          type:"cannon",      name:"🛡️ 은백의 명령" },
+      { id:"echo_of_grief",           type:"shotgun",     name:"🥀 비탄의 메아리" },
+      { id:"silent_incubator",        type:"shotgun",     name:"🤫 침묵의 배양자" },
+      { id:"day_of_sacred_ashes",     type:"shotgun",     name:"⏳ 성재의 날" },
+      { id:"art_of_detonation",       type:"shotgun",     name:"🔥 폭파의 예술" },
+      { id:"boning",                  type:"rifle",       name:"☠️ 발골" },
+      { id:"emitting_thunder",        type:"rifle",       name:"⚡ 방출하는 천둥" },
+      { id:"fire_of_purification",    type:"rifle",       name:"🔥 정화의 불" },
+      { id:"hymn_of_dawn",            type:"rifle",       name:"🌅 새벽의 찬송가" },
+      { id:"melody_of_waves",         type:"rifle",       name:"🌊 파도의 선율" },
+      { id:"white_feather_of_dream",  type:"rifle",       name:"🪶 꿈의 하얀 깃털" },
+      { id:"sand_of_blazing_fire",    type:"bow",         name:"🏜️ 열염의 모래" },
+      { id:"arch_age",                type:"bow",         name:"🏹 아크 에이지" },
+      { id:"inflorescence_of_embla",  type:"bow",         name:"🌸 엠블라의 꽃차례" },
+      { id:"burning_soul",            type:"bow",         name:"🔥 열혼" },
+    ];
+
+    // ═══════════════════════════════════════════════════════
+    // 악마의 쐐기 데이터
+    // grade: "gold" = 금색, "purple" = 보라색
+    // elem: 물/불/바람/번개/빛/어둠 (속성전용·캐릭터전용만 해당 속성)
+    // ═══════════════════════════════════════════════════════
+    const noneWedge = { id:"none", name:"❌ 장착 해제", atk:0, sk_pwr:0, sk_dur:0, hp:0, def:0 };
+
+    const ELEMS = [
+      { key:"빛",   emoji:"✨", abbr:"lt" },
+      { key:"어둠", emoji:"🌑", abbr:"dk" },
+      { key:"바람", emoji:"🌪️", abbr:"wd" },
+      { key:"번개", emoji:"⚡", abbr:"td" },
+      { key:"물",   emoji:"💧", abbr:"wt" },
+      { key:"불",   emoji:"🔥", abbr:"fr" },
+    ];
+
+    // 시리즈 템플릿 (빛 기준 수치 → 전속성 복제)
+    // grade: 금색(gold) = 강력한 메인 옵션, 보라색(purple) = 보조 옵션
+    const seriesTemplates = [
+      { series:"불사조", emoji:"🔥", wedges:[
+        { suffix:"atk", label:"[가호]",      desc:"공격력 +20%",             grade:"gold",   atk:20, sk_pwr:0,  sk_dur:0,  hp:10, def:0  },
+        { suffix:"sk",  label:"[날개]",      desc:"스킬위력 +15%",           grade:"purple", atk:0,  sk_pwr:15, sk_dur:0,  hp:5,  def:5  },
+      ]},
+      { series:"세이렌", emoji:"🧜", wedges:[
+        { suffix:"sk",  label:"[노래]",      desc:"스킬위력 +25%",           grade:"gold",   atk:0,  sk_pwr:25, sk_dur:0,  hp:0,  def:10 },
+        { suffix:"def", label:"[파도]",      desc:"방어력 +20%",             grade:"purple", atk:0,  sk_pwr:0,  sk_dur:0,  hp:10, def:20 },
+      ]},
+      { series:"체인질링", emoji:"👥", wedges:[
+        { suffix:"bal", label:"[변환]",      desc:"공격 +15% / 스킬위력 +15%", grade:"gold", atk:15, sk_pwr:15, sk_dur:0,  hp:5,  def:5  },
+        { suffix:"hp",  label:"[그림자]",   desc:"HP +25%",                 grade:"purple", atk:0,  sk_pwr:0,  sk_dur:0,  hp:25, def:0  },
+      ]},
+      { series:"티폰", emoji:"🔱", wedges:[
+        { suffix:"atk",   label:"[격양/필사]", desc:"ATK +60%",              grade:"gold",   atk:60, sk_pwr:0,  sk_dur:0,  hp:15, def:15 },
+        { suffix:"chase", label:"[체이스]",    desc:"ATK +40%, 스킬위력 -10%",grade:"gold",  atk:40, sk_pwr:-10,sk_dur:0,  hp:10, def:10 },
+        { suffix:"sup",   label:"[분기/안심]", desc:"ATK +20%",              grade:"purple", atk:20, sk_pwr:0,  sk_dur:0,  hp:20, def:20 },
+      ]},
+      { series:"그리핀", emoji:"🦅", wedges:[
+        { suffix:"spd",   label:"[기류]",    desc:"스킬지속 +20%",           grade:"gold",   atk:10, sk_pwr:0,  sk_dur:20, hp:0,  def:0  },
+        { suffix:"atk",   label:"[발톱]",    desc:"공격력 +12%",             grade:"purple", atk:12, sk_pwr:0,  sk_dur:0,  hp:0,  def:0  },
+      ]},
+      { series:"스핑크스", emoji:"🦁", wedges:[
+        { suffix:"def",   label:"[수수께끼]", desc:"방어력 +30%",            grade:"gold",   atk:0,  sk_pwr:0,  sk_dur:0,  hp:10, def:30 },
+        { suffix:"hp",    label:"[비밀]",    desc:"HP +20%",                 grade:"purple", atk:0,  sk_pwr:0,  sk_dur:0,  hp:20, def:10 },
+      ]},
+      { series:"메피스토", emoji:"😈", wedges:[
+        { suffix:"ext",   label:"[소멸(Δ)]",  desc:"공격 +96%",             grade:"gold",   atk:96, sk_pwr:0,  sk_dur:0,  hp:0,  def:0  },
+        { suffix:"dec",   label:"[작열/결단]",desc:"공격 +48% / 스킬위력 +24%",grade:"gold",atk:48, sk_pwr:24, sk_dur:0,  hp:0,  def:0  },
+        { suffix:"lif",   label:"[작열/환생]",desc:"공격 +48% / HP +48%",   grade:"purple", atk:48, sk_pwr:0,  sk_dur:0,  hp:48, def:0  },
+      ]},
+      { series:"요르문간드", emoji:"🐉", wedges:[
+        { suffix:"hp",    label:"[독기]",    desc:"최대 HP +35%",            grade:"gold",   atk:10, sk_pwr:0,  sk_dur:0,  hp:35, def:0  },
+        { suffix:"def",   label:"[비늘]",    desc:"방어력 +20% / HP +10%",  grade:"purple", atk:0,  sk_pwr:0,  sk_dur:0,  hp:10, def:20 },
+      ]},
+      { series:"판", emoji:"🐐", wedges:[
+        { suffix:"cr",    label:"[장난]",    desc:"스킬지속 +15% / 격양 +10%",grade:"gold",  atk:10, sk_pwr:0,  sk_dur:15, hp:0,  def:10 },
+        { suffix:"sk",    label:"[피리]",    desc:"스킬위력 +20%",           grade:"purple", atk:0,  sk_pwr:20, sk_dur:0,  hp:0,  def:0  },
+      ]},
+    ];
+
+    // 코어 슬롯 (쿠쿨칸) - 6속성 × 2종
+    const coreWedgeDatabase = {};
+    ELEMS.forEach(({ key, emoji, abbr }) => {
+      coreWedgeDatabase[`${emoji} 쿠쿨칸 (${key})`] = [
+        { id:`kk_${abbr}_atk`, name:`🔱 쿠쿨칸 [투지] ${emoji}${key} (ATK +50%)`,      grade:"gold",   atk:50, sk_pwr:0,  sk_dur:0,  hp:10, def:10, series:"쿠쿨칸", elem:key },
+        { id:`kk_${abbr}_sk`,  name:`🔱 쿠쿨칸 [지혜] ${emoji}${key} (스킬위력 +40%)`, grade:"purple", atk:0,  sk_pwr:40, sk_dur:10, hp:10, def:10, series:"쿠쿨칸", elem:key },
+      ];
+    });
+
+    // 외곽 슬롯 - 9시리즈 × 6속성 자동 생성
+    const outerWedgeDatabase = {};
+    seriesTemplates.forEach(({ series, emoji, wedges }) => {
+      ELEMS.forEach(({ key, emoji: ee, abbr }) => {
+        const gk = `${ee} ${series} (${key})`;
+        outerWedgeDatabase[gk] = wedges.map(w => ({
+          id:     `${abbr}_${series}_${w.suffix}`,
+          name:   `${emoji} ${series} ${w.label} ${ee}${key} (${w.desc})`,
+          grade:  w.grade,
+          atk:    w.atk, sk_pwr: w.sk_pwr, sk_dur: w.sk_dur, hp: w.hp, def: w.def,
+          series, elem: key,
+        }));
+      });
+    });
+
+    // 속성전용 (각 속성 고유 효과)
+    outerWedgeDatabase["💎 속성전용"] = [
+      { id:"sp_lt_prism", name:"✨ 금오의 프리즘 [빛 특화] (스킬지속 +24%)",  grade:"gold",   atk:0, sk_pwr:0,  sk_dur:24, hp:0, def:0, series:"속성전용", elem:"빛"  },
+      { id:"sp_dk_void",  name:"🌑 공허의 낙인 [어둠 특화] (스킬위력 +30%)", grade:"gold",   atk:0, sk_pwr:30, sk_dur:0,  hp:0, def:0, series:"속성전용", elem:"어둠" },
+      { id:"sp_wd_storm", name:"🌪️ 폭풍의 눈 [바람 특화] (스킬위력 +30%)",  grade:"gold",   atk:0, sk_pwr:30, sk_dur:0,  hp:0, def:0, series:"속성전용", elem:"바람" },
+      { id:"sp_td_bolt",  name:"⚡ 낙뢰의 각인 [번개 특화] (스킬위력 +30%)", grade:"gold",   atk:0, sk_pwr:30, sk_dur:0,  hp:0, def:0, series:"속성전용", elem:"번개" },
+      { id:"sp_wt_tide",  name:"💧 조류의 파동 [물 특화] (스킬위력 +30%)",   grade:"gold",   atk:0, sk_pwr:30, sk_dur:0,  hp:0, def:0, series:"속성전용", elem:"물"  },
+      { id:"sp_fr_fire",  name:"🔥 이프리트의 들불 [불 특화] (스킬위력 +30%)",grade:"gold",  atk:0, sk_pwr:30, sk_dur:0,  hp:0, def:0, series:"속성전용", elem:"불"  },
+    ];
+
+    // 캐릭터 전용
+    outerWedgeDatabase["👤 캐릭터 전용"] = [
+      { id:"ch_sig", name:"👤 싱크로니시티 [전용 특화] (공격력 +25%)", grade:"purple", atk:25, sk_pwr:10, sk_dur:10, hp:0, def:0, series:"캐릭터 전용", elem:"공용" },
+    ];
+
+    // 플랫 리스트
+    const flatOuterList = Object.values(outerWedgeDatabase).flat();
+    const flatCoreList  = Object.values(coreWedgeDatabase).flat();
+    const totalFlatWedgeList = [noneWedge, ...flatOuterList, ...flatCoreList];
+
+    // ═══════════════════════════════════════════════════════
+    // 슬롯 구성 정보
+    // ═══════════════════════════════════════════════════════
+    // 각 섹션: { prefix, labelClass, outerCount, hasCore, matrixId }
+    const SECTIONS = [
+      { prefix:"char",   labelClass:"char-label",   matrixId:"char-wedge-matrix",   outerCount:8, hasCore:true },
+      { prefix:"melee",  labelClass:"melee-label",  matrixId:"melee-wedge-matrix",  outerCount:8, hasCore:true },
+      { prefix:"ranged", labelClass:"ranged-label", matrixId:"ranged-wedge-matrix", outerCount:8, hasCore:true },
+    ];
+
+    // ═══════════════════════════════════════════════════════
+    // 필터 드롭다운 옵션 생성 (공통)
+    // ═══════════════════════════════════════════════════════
+    function buildFilterDropdowns(prefix) {
+      // 시리즈
+      const seriesSel = document.getElementById(`${prefix}-wf-series`);
+      const allSeries = ["all","쿠쿨칸","불사조","세이렌","체인질링","티폰","그리핀","스핑크스","메피스토","요르문간드","판","속성전용","캐릭터 전용"];
+      const seriesEmoji = { "all":"🔄", "쿠쿨칸":"🔱", "불사조":"🔥", "세이렌":"🧜", "체인질링":"👥", "티폰":"🔱", "그리핀":"🦅", "스핑크스":"🦁", "메피스토":"😈", "요르문간드":"🐉", "판":"🐐", "속성전용":"💎", "캐릭터 전용":"👤" };
+      allSeries.forEach(s => {
+        const o = document.createElement("option"); o.value = s;
+        o.textContent = s === "all" ? "🔄 전체 시리즈" : `${seriesEmoji[s]} ${s}`;
+        seriesSel.appendChild(o);
+      });
+      // 속성
+      const elemSel = document.getElementById(`${prefix}-wf-elem`);
+      [["all","🔄 전체 속성"],["빛","✨ 빛"],["어둠","🌑 어둠"],["바람","🌪️ 바람"],["번개","⚡ 번개"],["물","💧 물"],["불","🔥 불"],["공용","🔘 공용"]].forEach(([v,t]) => {
+        const o = document.createElement("option"); o.value = v; o.textContent = t;
+        elemSel.appendChild(o);
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 쐐기 매트릭스 DOM 생성
+    // ═══════════════════════════════════════════════════════
+    function buildWedgeMatrix(prefix, labelClass, matrixId, outerCount, hasCore) {
+      const matrix = document.getElementById(matrixId);
+      matrix.innerHTML = "";
+      // 외곽 슬롯 1~outerCount 와 코어를 3열 그리드로 배치
+      // 레이아웃: 1 2 3 / 4 CORE 5 / 6 7 8
+      const slotOrder = [];
+      for (let i = 1; i <= 4; i++) slotOrder.push(`outer${i}`);
+      if (hasCore) slotOrder.push("core");
+      for (let i = 5; i <= outerCount; i++) slotOrder.push(`outer${i}`);
+
+      slotOrder.forEach(key => {
+        const div = document.createElement("div");
+        div.className = "wedge-slot" + (key === "core" ? " core-slot" : "");
+
+        const span = document.createElement("span");
+        span.className = "slot-label " + (key === "core" ? "" : labelClass);
+        if (key === "core") {
+          span.textContent = "🔸 코어 (쿠쿨칸 전용)";
+        } else {
+          const num = key.replace("outer","");
+          span.textContent = `외곽 슬롯 ${num}`;
+        }
+        div.appendChild(span);
+
+        const sel = document.createElement("select");
+        const slotId = key === "core" ? `${prefix}-slot-core` : `${prefix}-slot${key.replace("outer","")}`;
+        sel.id = slotId;
+        sel.onchange = calculateAll;
+        div.appendChild(sel);
+        matrix.appendChild(div);
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 슬롯 셀렉트 옵션 재구성
+    // ═══════════════════════════════════════════════════════
+    function rebuildSlotSelect(sel, database, currentVal) {
+      const prev = currentVal ?? sel.value;
+      sel.innerHTML = "";
+      const no = document.createElement("option"); no.value = "none"; no.textContent = "❌ 장착 해제";
+      sel.appendChild(no);
+      Object.entries(database).forEach(([cat, wedges]) => {
+        if (!wedges.length) return;
+        const grp = document.createElement("optgroup"); grp.label = cat;
+        wedges.forEach(w => {
+          const o = document.createElement("option"); o.value = w.id;
+          o.textContent = (w.grade === "gold" ? "🥇 " : "💜 ") + w.name;
+          o.className = w.grade === "gold" ? "grade-gold" : "grade-purple";
+          grp.appendChild(o);
+        });
+        sel.appendChild(grp);
+      });
+      const exists = [...sel.options].some(o => o.value === prev);
+      sel.value = exists ? prev : "none";
+    }
+
+    function getFilteredDB(isCore, seriesFilter, elemFilter, gradeFilter) {
+      const src = isCore ? coreWedgeDatabase : outerWedgeDatabase;
+      const result = {};
+      Object.entries(src).forEach(([cat, wedges]) => {
+        const f = wedges.filter(w => {
+          const ms = seriesFilter === "all" || w.series === seriesFilter;
+          const me = elemFilter === "all" || w.elem === elemFilter || w.elem === "공용";
+          const mg = gradeFilter === "all" || w.grade === gradeFilter;
+          return ms && me && mg;
+        });
+        if (f.length) result[cat] = f;
+      });
+      return result;
+    }
+
+    function onWedgeFilterChange(prefix) {
+      const sf = document.getElementById(`${prefix}-wf-series`).value;
+      const ef = document.getElementById(`${prefix}-wf-elem`).value;
+      const gf = document.getElementById(`${prefix}-wf-grade`).value;
+
+      const outerDB = getFilteredDB(false, sf, ef, gf);
+      const coreDB  = getFilteredDB(true,  sf, ef, gf);
+
+      const sec = SECTIONS.find(s => s.prefix === prefix);
+      const outerIds = [];
+      for (let i = 1; i <= sec.outerCount; i++) outerIds.push(`${prefix}-slot${i}`);
+      outerIds.forEach(id => {
+        const sel = document.getElementById(id);
+        if (sel) rebuildSlotSelect(sel, outerDB);
+      });
+      if (sec.hasCore) {
+        const coreSel = document.getElementById(`${prefix}-slot-core`);
+        if (sf === "all" || sf === "쿠쿨칸") rebuildSlotSelect(coreSel, coreDB);
+        else {
+          coreSel.innerHTML = ""; const o = document.createElement("option"); o.value="none"; o.textContent="❌ 장착 해제"; coreSel.appendChild(o);
+        }
+      }
+
+      // 카운트
+      const total = [...flatOuterList, ...flatCoreList].filter(w => {
+        const ms = sf === "all" || w.series === sf;
+        const me = ef === "all" || w.elem === ef || w.elem === "공용";
+        const mg = gf === "all" || w.grade === gf;
+        return ms && me && mg;
+      }).length;
+      document.getElementById(`${prefix}-wf-count`).textContent = total;
+
+      calculateAll();
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 쐐기 합산 헬퍼
+    // ═══════════════════════════════════════════════════════
+    function sumWedges(prefix, outerCount, hasCore) {
+      let atk=0, sk_pwr=0, sk_dur=0, hp=0, def=0;
+      for (let i = 1; i <= outerCount; i++) {
+        const sel = document.getElementById(`${prefix}-slot${i}`);
+        if (!sel) continue;
+        const w = totalFlatWedgeList.find(x => x.id === sel.value);
+        if (w) { atk+=w.atk; sk_pwr+=w.sk_pwr; sk_dur+=w.sk_dur; hp+=w.hp; def+=w.def; }
+      }
+      if (hasCore) {
+        const sel = document.getElementById(`${prefix}-slot-core`);
+        if (sel) {
+          const w = totalFlatWedgeList.find(x => x.id === sel.value);
+          if (w) { atk+=w.atk; sk_pwr+=w.sk_pwr; sk_dur+=w.sk_dur; hp+=w.hp; def+=w.def; }
+        }
+      }
+      return { atk, sk_pwr, sk_dur, hp, def };
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 메인 계산
+    // ═══════════════════════════════════════════════════════
+    function calculateAll() {
+      const charBase  = Number(document.getElementById("char-base-atk").value)    || 0;
+      const charHp    = Number(document.getElementById("char-base-hp").value)     || 0;
+      const charShd   = Number(document.getElementById("char-base-shield").value) || 0;
+      const charDef   = Number(document.getElementById("char-base-def").value)    || 0;
+      const charSp    = Number(document.getElementById("char-base-sp").value)     || 100;
+      const charSr    = Number(document.getElementById("char-base-sr").value)     || 100;
+      const charSd    = Number(document.getElementById("char-base-sd").value)     || 100;
+      const charEx    = Number(document.getElementById("char-base-ex").value)     || 0;
+      const charDs    = Number(document.getElementById("char-base-ds").value)     || 0;
+      const meleeBase = Number(document.getElementById("melee-base-atk").value)   || 0;
+      const rangedBase= Number(document.getElementById("ranged-base-atk").value)  || 0;
+      const skillMult = Number(document.getElementById("skill-multiplier").value) || 0;
+
+      const cw = sumWedges("char",   8, true);
+      const mw = sumWedges("melee",  8, true);
+      const rw = sumWedges("ranged", 8, true);
+
+      // 캐릭터 쐐기만 캐릭터 스탯에 적용
+      const charFinalAtk = charBase * (1 + cw.atk / 100);
+      const charFinalHp  = charHp  * (1 + cw.hp  / 100);
+      const charFinalShd = charShd * (1 + cw.hp  / 100);
+      const charFinalDef = charDef * (1 + cw.def / 100);
+      const charFinalSp  = charSp  + cw.sk_pwr;
+      const charFinalSd  = charSd  + cw.sk_dur;
+
+      // 근접: (캐릭 기본공 + 무기깡공) × (1 + 근접쐐기 ATK%)
+      const meleeTotalBase  = charBase + meleeBase;
+      const meleeFinalAtk   = meleeTotalBase * (1 + mw.atk / 100);
+      const meleeSkMult     = (skillMult / 100) * ((charFinalSp / 100) + mw.sk_pwr / 100);
+      const meleeDmg        = meleeFinalAtk * meleeSkMult;
+
+      // 원거리: 마찬가지
+      const rangedTotalBase = charBase + rangedBase;
+      const rangedFinalAtk  = rangedTotalBase * (1 + rw.atk / 100);
+      const rangedSkMult    = (skillMult / 100) * ((charFinalSp / 100) + rw.sk_pwr / 100);
+      const rangedDmg       = rangedFinalAtk * rangedSkMult;
+
+      // 출력
+      document.getElementById("cw-atk").textContent  = `+${cw.atk}%`;
+      document.getElementById("cw-sk").textContent   = `+${cw.sk_pwr}%`;
+      document.getElementById("cw-dur").textContent  = `+${cw.sk_dur}%`;
+      document.getElementById("cw-surv").textContent = `+${cw.hp}% / +${cw.def}%`;
+
+      document.getElementById("c-pure-base").textContent    = charBase.toLocaleString();
+      document.getElementById("c-final-total").textContent  = Math.round(charFinalAtk).toLocaleString();
+      document.getElementById("c-final-surv").textContent   = `${Math.round(charFinalHp).toLocaleString()} / ${Math.round(charFinalShd).toLocaleString()} / ${Math.round(charFinalDef).toLocaleString()}`;
+      document.getElementById("c-final-sk-stats").textContent = `${charFinalSp}% / ${charSr}% / ${charFinalSd}%`;
+      document.getElementById("c-final-buff-stats").textContent = `${charEx}% / ${charDs}%`;
+
+      document.getElementById("mw-atk").textContent = `+${mw.atk}%`;
+      document.getElementById("mw-sk").textContent  = `+${mw.sk_pwr}%`;
+      document.getElementById("mw-dur").textContent = `+${mw.sk_dur}%`;
+      document.getElementById("m-total-base").textContent  = meleeTotalBase.toLocaleString();
+      document.getElementById("m-final-atk").textContent   = Math.round(meleeFinalAtk).toLocaleString();
+      document.getElementById("m-expected-dmg").textContent= Math.round(meleeDmg).toLocaleString();
+
+      document.getElementById("rw-atk").textContent = `+${rw.atk}%`;
+      document.getElementById("rw-sk").textContent  = `+${rw.sk_pwr}%`;
+      document.getElementById("rw-dur").textContent = `+${rw.sk_dur}%`;
+      document.getElementById("r-total-base").textContent  = rangedTotalBase.toLocaleString();
+      document.getElementById("r-final-atk").textContent   = Math.round(rangedFinalAtk).toLocaleString();
+      document.getElementById("r-expected-dmg").textContent= Math.round(rangedDmg).toLocaleString();
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 캐릭터·무기 관련
+    // ═══════════════════════════════════════════════════════
+    function onCharFilterChange() { updateCharacterList(); onCharacterSelectChange(); }
+
+    function updateCharacterList() {
+      const ef = document.getElementById("char-elem-select").value;
+      const pf = document.getElementById("char-pos-select").value;
+      const sel = document.getElementById("char-select");
+      sel.innerHTML = "";
+      characters.forEach(c => {
+        if ((ef==="all"||c.element===ef) && (pf==="all"||c.position===pf)) {
+          const o=document.createElement("option"); o.value=c.id; o.textContent=c.name; sel.appendChild(o);
+        }
+      });
+      if (!sel.options.length) { const o=document.createElement("option"); o.value="none"; o.textContent="❓ 없음"; sel.appendChild(o); }
+    }
+
+    function changeLevel(lv) {
+      selectedLevel = lv;
+      document.getElementById("btn-lv1").classList.toggle("active", lv===1);
+      document.getElementById("btn-lv80").classList.toggle("active", lv===80);
+      bindSelectedCharacterStats();
+    }
+
+    function onCharacterSelectChange() { bindSelectedCharacterStats(); }
+
+    function bindSelectedCharacterStats() {
+      const id = document.getElementById("char-select").value;
+      const c  = characters.find(x => x.id === id);
+      if (!c || id==="none") {
+        document.getElementById("info-position").innerText = "-";
+        document.getElementById("info-mastery").innerText  = "-";
+        document.getElementById("lbl-char-base-atk").innerText = "속성 기본 공격력";
+        return;
+      }
+      document.getElementById("info-position").innerText = c.position;
+      document.getElementById("info-mastery").innerText  = c.mastery;
+      document.getElementById("lbl-char-base-atk").innerText = `${c.element} 속성 기본 공격력`;
+      const s = selectedLevel===1 ? c.lv1 : c.lv80;
+      ["atk","hp","shd","def","mental","sp","sr","sd","ex","ds"].forEach(k => {
+        const el = document.getElementById(`char-base-${k}`);
+        if (el) el.value = s[k] ?? s[k.replace("mental","mt")] ?? s[k.replace("atk","atk")] ?? 0;
+      });
+      // manual map
+      document.getElementById("char-base-atk").value    = s.atk;
+      document.getElementById("char-base-hp").value     = s.hp;
+      document.getElementById("char-base-shield").value = s.shd;
+      document.getElementById("char-base-def").value    = s.df;
+      document.getElementById("char-base-mental").value = s.mt;
+      document.getElementById("char-base-sp").value     = s.sp;
+      document.getElementById("char-base-sr").value     = s.sr;
+      document.getElementById("char-base-sd").value     = s.sd;
+      document.getElementById("char-base-ex").value     = s.ex;
+      document.getElementById("char-base-ds").value     = s.ds;
+      calculateAll();
+    }
+
+    function onMeleeTypeChange() { updateMeleeWeaponList(); }
+    function updateMeleeWeaponList() {
+      const t = document.getElementById("melee-type-select").value;
+      const sel = document.getElementById("melee-weapon-select");
+      sel.innerHTML = "";
+      const no=document.createElement("option"); no.value="none"; no.textContent="❌ 미장착"; sel.appendChild(no);
+      meleeWeapons.forEach(w => {
+        if (w.id==="none") return;
+        if (t==="all"||w.type===t) { const o=document.createElement("option"); o.value=w.id; o.textContent=w.name; sel.appendChild(o); }
+      });
+      sel.selectedIndex=0; calculateAll();
+    }
+    function onRangedTypeChange() { updateRangedWeaponList(); }
+    function updateRangedWeaponList() {
+      const t = document.getElementById("ranged-type-select").value;
+      const sel = document.getElementById("ranged-weapon-select");
+      sel.innerHTML = "";
+      const no=document.createElement("option"); no.value="none"; no.textContent="❌ 미장착"; sel.appendChild(no);
+      rangedWeapons.forEach(w => {
+        if (w.id==="none") return;
+        if (t==="all"||w.type===t) { const o=document.createElement("option"); o.value=w.id; o.textContent=w.name; sel.appendChild(o); }
+      });
+      sel.selectedIndex=0; calculateAll();
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 초기화
+    // ═══════════════════════════════════════════════════════
+    window.onload = function() {
+      // 각 섹션 DOM + 필터 구성
+      SECTIONS.forEach(({ prefix, labelClass, matrixId, outerCount, hasCore }) => {
+        buildWedgeMatrix(prefix, labelClass, matrixId, outerCount, hasCore);
+        buildFilterDropdowns(prefix);
+        onWedgeFilterChange(prefix);
+      });
+
+      updateCharacterList();
+      updateMeleeWeaponList();
+      updateRangedWeaponList();
+      onCharacterSelectChange();
+    };
+    </script>
+  </body>
+</html>
